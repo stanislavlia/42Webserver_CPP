@@ -8,6 +8,9 @@
 #include <iostream>         // For standard input/output streams
 #include <sstream>          // For string stream operations
 #include <cstdlib>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <cstring>
 
 /* System Headers */
 #include <sys/socket.h>     // For socket functions and types
