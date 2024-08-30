@@ -47,7 +47,6 @@
 # include "Location.hpp"
 # include "HttpRequest.hpp"
 # include "CgiHandler.hpp"
-# include "Mime.hpp"
 # include "Logger.hpp"
 
 /**
