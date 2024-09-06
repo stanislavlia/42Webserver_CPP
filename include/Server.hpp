@@ -18,6 +18,9 @@ class Server
         void     _listen_socket();
         int     _accept_connection();
 
+        std::string render_html(const std::string& path);
+        void    respond_with_html(int client_fd);
+        
     
     public:
         Server(struct sockaddr_in  *_sock_address, int port);

@@ -81,13 +81,27 @@ int    Server::_accept_connection()
     return new_socket;
 };
 
+std::string Server::render_html(const std::string& path)
+{
+    std::ifstream file(path);
+
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open HTML file: " << path << std::endl;
+        return "<html><body><h1>404 Not Found</h1></body></html>";
+    };
+
+    std::stringstream  stream_buffer;
+    stream_buffer << file.rdbuf();
+    return stream_buffer.str();
+};  
 
 
 void    Server::setup_server()
 {
     _create_server_socket();
     _set_socket_options(1);
-    _setup_socketaddress(INADDR_ANY);
+    _setup_socketaddress(INADDR_ANY); // 0.0.0.0 - special address that listen on all available net interfaces
     
     FD_ZERO(&read_fds);
     FD_SET(_server_fd, &read_fds);
@@ -116,6 +130,14 @@ void    Server::run()
     while (is_running)
     {
         fd_set current_fds = read_fds;
+
+      //=================FD-SET API===============================
+      //read_fds is the set of file descriptors being monitored for incoming data.
+      //FD_SET() adds a file descriptor to the set.
+      //FD_ZERO() clears the set.
+      //FD_CLR() removes a file descriptor from the set.
+      //FD_ISSET() checks if a file descriptor is ready (i.e., has data available or is ready to accept new connections).
+
         activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
         if (activity < 0)
             continue;
@@ -152,10 +174,22 @@ void    Server::run()
                 {
                     std::cout << "Received message " << buffer << std::endl;
                     std::cout << "Sending back ...\n";
-                    send(i, buffer, valread, 0);
+                    if (strncmp(buffer, "GET", 3) == 0)
+                    {
+                        std::string html_content = render_html("../static/index.html");
+
+                        std::string response = 
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html\r\n"
+                        "Content-Length: " + std::to_string(html_content.length()) + "\r\n"
+                        "\r\n" + html_content;
+                        
+                        send(i, response.c_str(), response.length(), 0); 
+                    }
+                    else
+                        send(i, buffer, valread, 0);
                 }
-            }
+            }   
         }
     }
-    
 };

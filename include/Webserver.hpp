@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <cstring>
+#include <fstream>
 
 /* System Headers */
 #include <sys/socket.h>     // For socket functions and types
