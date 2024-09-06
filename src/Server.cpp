@@ -100,3 +100,62 @@ void    Server::setup_server()
     std::cout << "Listening on port: " << PORT << std::endl;
 
 };
+
+
+
+void    Server::run()
+{
+    int activity;
+    int max_fd = _server_fd;
+    int new_socket;
+    int valread;
+
+    bool is_running = true;
+    char buffer[BUFF_SIZE] = {0};
+
+    while (is_running)
+    {
+        fd_set current_fds = read_fds;
+        activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+        if (activity < 0)
+            continue;
+
+        //check incoming connection
+        if (FD_ISSET(_server_fd, &current_fds))
+        {
+            new_socket = _accept_connection();
+            if (new_socket >= 0)
+            {   
+                // add socket to fd set
+                FD_SET(new_socket, &read_fds);
+                if (new_socket > max_fd)
+                    max_fd = new_socket;
+                
+                std::cout << "New connection accepted. SOCKET FD: " << new_socket << std::endl;
+            }
+        }
+        
+
+        //========Perform I/O on sockets=============
+        for (int i = 0; i <= max_fd; i++)
+        {
+            if (FD_ISSET(i, &current_fds) && i != _server_fd) //skip server_fd
+            {
+                valread = read(i, buffer, sizeof(buffer));
+                if (valread == 0)
+                {
+                    std::cout << "Client disconnected; SOCKET_FD " << i << std::endl;
+                    close(i);
+                    FD_CLR(i, &read_fds); //remove socket from set
+                }
+                else if (valread > 0)
+                {
+                    std::cout << "Received message " << buffer << std::endl;
+                    std::cout << "Sending back ...\n";
+                    send(i, buffer, valread, 0);
+                }
+            }
+        }
+    }
+    
+};

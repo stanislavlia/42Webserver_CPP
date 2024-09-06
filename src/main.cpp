@@ -8,5 +8,6 @@ int main()
     Server  server(&address, PORT);
 
     server.setup_server();
+    server.run();
 
 };

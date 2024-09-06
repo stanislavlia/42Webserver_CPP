@@ -10,7 +10,6 @@ class Server
         struct sockaddr_in  *_sock_address;
         int  _server_fd;
         fd_set  read_fds;
-        char    _buffer[BUFF_SIZE];
 
         void    _create_server_socket();
         void    _set_socket_options(int opt);
