@@ -6,8 +6,8 @@ Server::Server()
 };
 
 Server::Server(struct sockaddr_in  *sock_address, int port) 
-: _sock_address(sock_address), _port(port), _buffer({0})
-{
+: _port(port), _sock_address(sock_address) 
+{   
     std::cout << "Server initialized\n";
 };
 
