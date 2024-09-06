@@ -1,9 +1,6 @@
 #include "Webserver.hpp"
 #include <fcntl.h>  // Needed for fcntl()
 
-#define PORT 8012
-#define BUFF_SIZE 1024
-#define CONN_QUEUE 4
 
 int create_server_fd()
 {

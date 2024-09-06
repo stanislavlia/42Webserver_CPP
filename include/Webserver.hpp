@@ -25,6 +25,11 @@
 #include <errno.h>          // For handling error codes
 
 
+#define PORT 8012
+#define BUFF_SIZE 1024
+#define CONN_QUEUE 4
+
+
 
 
 #endif

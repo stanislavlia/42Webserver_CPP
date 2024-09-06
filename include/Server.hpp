@@ -10,12 +10,13 @@ class Server
         struct sockaddr_in  *_sock_address;
         int  _server_fd;
         fd_set  read_fds;
+        char    _buffer[BUFF_SIZE];
 
         void    _create_server_socket();
         void    _set_socket_options(int opt);
         void    _setup_socketaddress(int host);
         void    _bind_socket();
-        int     _listen_socket();
+        void     _listen_socket();
         int     _accept_connection();
 
     

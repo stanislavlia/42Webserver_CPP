@@ -5,7 +5,8 @@ Server::Server()
 
 };
 
-Server::Server(struct sockaddr_in  *sock_address, int port) : _sock_address(sock_address), _port(port)
+Server::Server(struct sockaddr_in  *sock_address, int port) 
+: _sock_address(sock_address), _port(port), _buffer({0})
 {
     std::cout << "Server initialized\n";
 };
@@ -50,5 +51,52 @@ void Server::_setup_socketaddress(int host)
 };
 
 
+void    Server::_bind_socket()
+{
+    if (bind(_server_fd, (struct sockaddr *)_sock_address, sizeof(*_sock_address)) < 0)
+    {
+        std::cerr << "Failed to bind socket" << std::endl;
+        close(_server_fd);
+        exit(EXIT_FAILURE);
+    }
+};
+
+void    Server::_listen_socket()
+{
+    if (listen(_server_fd, CONN_QUEUE) < 0)
+    {
+        std::cerr << "Failed to listen\n";
+        close(_server_fd);
+        exit(EXIT_FAILURE);
+    }
+};
+
+int    Server::_accept_connection()
+{
+    int new_socket;
+    socklen_t addrlen = sizeof(*_sock_address);
+
+    new_socket = accept(_server_fd, (struct sockaddr*) _sock_address, &addrlen);
+    //Add some error handling & exceptions
+    return new_socket;
+};
 
 
+
+void    Server::setup_server()
+{
+    _create_server_socket();
+    _set_socket_options(1);
+    _setup_socketaddress(INADDR_ANY);
+    
+    FD_ZERO(&read_fds);
+    FD_SET(_server_fd, &read_fds);
+
+    std::cout << "Server socket created and configured successfully.\n";
+    std::cout << "Server FD: " << _server_fd << std::endl;
+
+    _bind_socket();
+    _listen_socket();
+    std::cout << "Listening on port: " << PORT << std::endl;
+
+};
