@@ -1,7 +1,7 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include "Webserv.hpp"
+#include "Webserver.hpp"
 
 class Server
 {  
@@ -11,9 +11,9 @@ class Server
         int  _server_fd;
         fd_set  read_fds;
 
-        int  _create_server_socket();
+        void    _create_server_socket();
         void    _set_socket_options(int opt);
-        void    _setup_socketaddress();
+        void    _setup_socketaddress(int host);
         void    _bind_socket();
         int     _listen_socket();
         int     _accept_connection();
