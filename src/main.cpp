@@ -1,4 +1,5 @@
 #include "Webserver.hpp"
+#include <fcntl.h>  // Needed for fcntl()
 
 #define PORT 8012
 #define BUFF_SIZE 1024
@@ -15,9 +16,12 @@ int create_server_fd()
         std::cerr << "Socket creation failed\n";
         exit(EXIT_FAILURE); 
     }
-    return server_fd;
-};
 
+    // Set the server socket to non-blocking mode
+    fcntl(server_fd, F_SETFL, O_NONBLOCK);
+
+    return server_fd;
+}
 
 void set_socket_options(int server_fd, int opt)
 {
@@ -29,13 +33,12 @@ void set_socket_options(int server_fd, int opt)
     }
 }
 
-
 void setup_socketaddress(struct sockaddr_in *sock_address, int host, int port)
 {
     sock_address->sin_family = AF_INET;
     sock_address->sin_addr.s_addr = host;
     sock_address->sin_port = htons(port);
-};
+}
 
 void bind_socket(int server_fd, struct sockaddr_in *sock_address)
 {
@@ -66,18 +69,20 @@ int accept_connection_socket(int server_fd, struct sockaddr_in *sock_address)
 
     if (new_socket < 0)
     {
-        std::cerr << "Accept failed." << std::endl;
-        close(server_fd);
-        exit(EXIT_FAILURE);
+        if (errno != EWOULDBLOCK)  // Accepting failed for reasons other than non-blocking
+        {
+            std::cerr << "Accept failed." << std::endl;
+            close(server_fd);
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+    {
+        // Set the new socket to non-blocking mode
+        fcntl(new_socket, F_SETFL, O_NONBLOCK);
     }
     return new_socket;
-};
-
-
-//CLI to check listening sockets: lsof -i -P -n | grep LISTEN
-//CLI to test echo-serv: telnet localhost 8012
-//CLI to test echo-serv: nc localhost 8012
-
+}
 
 int main()
 {
@@ -86,53 +91,90 @@ int main()
     int new_socket;
     int valread;
     char buffer[BUFF_SIZE] = {0};
+    struct sockaddr_in address;
+     
+    fd_set readfds; //set of FDs for I/O ops
+    int max_fd, activity;
     
     set_socket_options(server_fd, opt);
 
-    struct sockaddr_in address;
+    
     setup_socketaddress(&address, INADDR_ANY, PORT);
+
+    FD_ZERO(&readfds);
+    FD_SET(server_fd, &readfds);
+    max_fd = server_fd;
 
     std::cout << "Server socket created and configured successfully.\n";
     std::cout << "Server FD: " << server_fd << std::endl;
 
-    // Bind, listen, and accept would follow here in a full implementation.
     bind_socket(server_fd, &address);
     listen_socket(server_fd);
-    std::cout << "Listening on on port: " << PORT << std::endl; 
+    std::cout << "Listening on port: " << PORT << std::endl; 
     
     while (true)
     {
-        new_socket = accept_connection_socket(server_fd, &address);
-        std::cout << "Connection accepted, new socket_fd: " << new_socket << std::endl;
-        
-        // Reset buffer for new connection
-        memset(buffer, 0, BUFF_SIZE);
+        fd_set current_fds = readfds;
 
-        valread = read(new_socket, buffer, BUFF_SIZE);
-        if (valread > 0)
+        //================MULTIPLEXING=================
+        activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+        if (activity < 0)
         {
-            std::cout << "Received " << valread << " bytes" << std::endl;
-            std::cout << "Content: " << buffer << std::endl;
-
-            // Send back the same message
-            send(new_socket,  "[SERV_ECHO]: ", 14, 0);
-            send(new_socket, buffer, valread, 0);
-            
-            std::cout << "Echoed message back to client." << std::endl;
-        }
-        else if (valread == 0)
-        {
-            std::cout << "Client disconnected." << std::endl;
-        }
-        else
-        {
-            std::cerr << "Read error." << std::endl;
+            std::cerr << "select() failed\n" << std::endl;
+            continue;
         }
 
-        close(new_socket);
+        // Check if it's an incoming connection
+        if (FD_ISSET(server_fd, &current_fds))
+        {
+            new_socket = accept_connection_socket(server_fd, &address);
+            if (new_socket > 0)
+            {
+                std::cout << "Connection accepted; fd: " << new_socket << std::endl;
+
+                // Add new socket to pool of fds
+                FD_SET(new_socket, &readfds);
+                if (new_socket > max_fd)
+                    max_fd = new_socket;
+            }
+        }
+
+        //============PERFORM I/O OPERATIONS on other sockets from Pool========
+        for (int i = 0; i <= max_fd; i++)
+        {
+            if (FD_ISSET(i, &current_fds))
+            {
+                memset(buffer, 0, BUFF_SIZE);
+                valread = read(i, buffer, BUFF_SIZE);
+
+                if (valread > 0)
+                {
+                    std::cout << "Received " << valread << " bytes on socket_fd: " << i << std::endl;
+                    std::cout << "Content: " << buffer << std::endl;
+
+                    // Send back the same message with prefix
+                    send(i, "[SERV_ECHO]: ", 14, 0);
+                    send(i, buffer, valread, 0);
+                    
+                    std::cout << "Echoed message back to client on socket_fd: " << i << std::endl;
+                }
+                else if (valread == 0)
+                {
+                    // Client disconnected
+                    std::cout << "Client disconnected from socket_fd: " << i << std::endl;
+                    close(i);
+                    FD_CLR(i, &readfds);
+                }
+                else if (valread < 0 && errno != EWOULDBLOCK)
+                {
+                    std::cerr << "Read error on socket_fd: " << i << std::endl;
+                    close(i);
+                    FD_CLR(i, &readfds);
+                }
+            }
+        }
     }
-    
+
     close(server_fd);
-    return 0;
     return 0;
 }

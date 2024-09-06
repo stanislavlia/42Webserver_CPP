@@ -53,6 +53,6 @@ class ServerManager
         void assignServer(Client &);                     ///< Assign a server configuration to a client based on the request.
         void addToSet(const int, fd_set &);              ///< Add a file descriptor to a specified fd_set.
         void removeFromSet(const int, fd_set &);         ///< Remove a file descriptor from a specified fd_set.
-};
+};k
 
 #endif // SERVERMANAGER_HPP
