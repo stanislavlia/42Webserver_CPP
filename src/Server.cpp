@@ -162,7 +162,7 @@ void Server::run()
                 else if (valread > 0)
                 {
                     std::cout << "Sending back ...\n";
-                    if (strncmp(buffer, "GET", 3) == 0)
+                    if (strncmp(buffer, "GET / ", 6) == 0 || strncmp(buffer, "GET /home", 9) == 0)
                     {
                         std::string html_content = render_html("/home/stanislav/Desktop/42Webserver_CPP/static/index.html");
 
@@ -171,6 +171,21 @@ void Server::run()
 
                         std::string response = 
                         "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html\r\n"
+                        "Content-Length: " + ss.str() + "\r\n"
+                        "\r\n" + html_content;
+
+                        send(i, response.c_str(), response.length(), 0); 
+                    }
+                    else if (strncmp(buffer, "GET", 3) == 0)
+                    {
+                        std::string html_content = render_html("/home/stanislav/Desktop/42Webserver_CPP/static/not_found.html");
+
+                        std::stringstream ss;
+                        ss << html_content.length();
+
+                        std::string response = 
+                        "HTTP/1.1 404 ERROR\r\n"
                         "Content-Type: text/html\r\n"
                         "Content-Length: " + ss.str() + "\r\n"
                         "\r\n" + html_content;
