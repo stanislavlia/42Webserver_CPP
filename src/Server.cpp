@@ -83,7 +83,7 @@ int    Server::_accept_connection()
 
 std::string Server::render_html(const std::string& path)
 {
-    std::ifstream file(path);
+    std::ifstream file(path.c_str());
 
     if (!file.is_open())
     {
@@ -117,7 +117,7 @@ void    Server::setup_server()
 
 
 
-void    Server::run()
+void Server::run()
 {
     int activity;
     int max_fd = _server_fd;
@@ -131,24 +131,15 @@ void    Server::run()
     {
         fd_set current_fds = read_fds;
 
-      //=================FD-SET API===============================
-      //read_fds is the set of file descriptors being monitored for incoming data.
-      //FD_SET() adds a file descriptor to the set.
-      //FD_ZERO() clears the set.
-      //FD_CLR() removes a file descriptor from the set.
-      //FD_ISSET() checks if a file descriptor is ready (i.e., has data available or is ready to accept new connections).
-
         activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
         if (activity < 0)
             continue;
 
-        //check incoming connection
         if (FD_ISSET(_server_fd, &current_fds))
         {
             new_socket = _accept_connection();
             if (new_socket >= 0)
             {   
-                // add socket to fd set
                 FD_SET(new_socket, &read_fds);
                 if (new_socket > max_fd)
                     max_fd = new_socket;
@@ -156,34 +147,34 @@ void    Server::run()
                 std::cout << "New connection accepted. SOCKET FD: " << new_socket << std::endl;
             }
         }
-        
 
-        //========Perform I/O on sockets=============
         for (int i = 0; i <= max_fd; i++)
         {
-            if (FD_ISSET(i, &current_fds) && i != _server_fd) //skip server_fd
+            if (FD_ISSET(i, &current_fds) && i != _server_fd) 
             {
                 valread = read(i, buffer, sizeof(buffer));
                 if (valread == 0)
                 {
                     std::cout << "Client disconnected; SOCKET_FD " << i << std::endl;
                     close(i);
-                    FD_CLR(i, &read_fds); //remove socket from set
+                    FD_CLR(i, &read_fds);
                 }
                 else if (valread > 0)
                 {
-                    std::cout << "Received message " << buffer << std::endl;
                     std::cout << "Sending back ...\n";
                     if (strncmp(buffer, "GET", 3) == 0)
                     {
-                        std::string html_content = render_html("../static/index.html");
+                        std::string html_content = render_html("/home/stanislav/Desktop/42Webserver_CPP/static/index.html");
+
+                        std::stringstream ss;
+                        ss << html_content.length();
 
                         std::string response = 
                         "HTTP/1.1 200 OK\r\n"
                         "Content-Type: text/html\r\n"
-                        "Content-Length: " + std::to_string(html_content.length()) + "\r\n"
+                        "Content-Length: " + ss.str() + "\r\n"
                         "\r\n" + html_content;
-                        
+
                         send(i, response.c_str(), response.length(), 0); 
                     }
                     else
