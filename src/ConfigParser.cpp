@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/09 13:05:08 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:26:56 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,13 +38,66 @@ ConfigParser::~ConfigParser()
 	std::cout << "ConfigParser destructor" << std::endl;
 }
 
+// HELPERS FUNCTIONS
+
+void parseListen(std::istringstream& iss, ServerParam& server)
+{
+    int listen;
+    iss >> listen;
+    server.setListen(listen);
+}
+
+void parseServerName(std::istringstream& iss, ServerParam& server)
+{
+    std::string server_name;
+    std::getline(iss, server_name, ';');
+    server_name = server_name.substr(2); // Remove leading ": "
+    server.setServerName(server_name);
+}
+
+void parseIndex(std::istringstream& iss, ServerParam& server)
+{
+    std::string index;
+    iss >> index;
+    server.setIndex(index);
+}
+
+void parseErrorPage(std::istringstream& iss, ServerParam& server)
+{
+    std::string error_page;
+    iss >> error_page;
+    server.setErrorPage(error_page);
+}
+
+// MAIN FUNCTION
+
+/**
+ * Parse the config file and return a vector of ServerParam
+ * Use the following directives:
+ * - listen
+ * - server_name
+ * - index
+ * - error_page
+ * - location
+ * - server
+ * - }
+ * 
+ *  @return std::vector<ServerParam> servers
+ */
+
 std::vector<ServerParam> ConfigParser::parse()
 {
     std::vector<ServerParam> servers;
+	
     std::ifstream file(_configFile.c_str());
-    if (!file.is_open()) {
+
+    if (!file.is_open())
+	{
         throw std::runtime_error("Unable to open config file: " + _configFile);
     }
+	
+    std::string tokens[] = {"listen", "server_name", "index", "error_page", "location", "server", "}"};
+    void (*functions[])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseIndex, parseErrorPage};
 
     std::string line;
     ServerParam current_server;
@@ -56,63 +109,62 @@ std::vector<ServerParam> ConfigParser::parse()
         std::istringstream iss(line);
         std::string token;
         iss >> token;
+		if (token.empty())
+			continue ;
 
-        if (token == "server")
+        bool token_found = false;
+        for (int i = 0; i < 7; ++i)
 		{
-            if (in_server_block)
+            if (token == tokens[i])
 			{
-                servers.push_back(current_server);
-                current_server = ServerParam();
-            }
-            in_server_block = true;
-        }
-		else if (token == "listen")
-		{
-            int listen;
-            iss >> listen;
-            current_server.setListen(listen);
-        }
-		else if (token == "server_name")
-		{
-            std::string server_name;
-            std::getline(iss, server_name, ';');
-            server_name = server_name.substr(2); // Remove leading ": "
-            current_server.setServerName(server_name);
-        }
-		else if(token == "location")
-		{
-            in_location_block = true;
-        }
-		else if (token == "index" && in_location_block)
-		{
-            std::string index;
-            iss >> index;
-            current_server.setIndex(index);
-        }
-		else if (token == "error_page")
-		{
-            std::string error_page;
-            iss >> error_page;
-            current_server.setErrorPage(error_page);
-        }
-		else if (token == "}")
-		{
-            if (in_location_block)
-			{
-                in_location_block = false;
-            }
-			else if (in_server_block)
-			{
-                servers.push_back(current_server);
-                in_server_block = false;
+                token_found = true;
+                switch (i) {
+                    case 0:
+                        functions[0](iss, current_server);
+                        break;
+                    case 1:
+                        functions[1](iss, current_server);
+                        break;
+                    case 2:
+                        if (in_location_block)
+                            functions[2](iss, current_server);
+                        break;
+                    case 3:
+                        functions[3](iss, current_server);
+                        break;
+                    case 4:
+                        in_location_block = true;
+                        break;
+                    case 5:
+                        if (in_server_block)
+						{
+                            servers.push_back(current_server);
+                            current_server = ServerParam();
+                        }
+                        in_server_block = true;
+                        break;
+                    case 6:
+                        if (in_location_block)
+                            in_location_block = false;
+						else if (in_server_block)
+						{
+                            servers.push_back(current_server);
+                            in_server_block = false;
+                        }
+                        break;
+                }
+                break;
             }
         }
+		if (!token_found)
+		{
+			throw std::runtime_error("Unknown directive: " + token);    
+		}
     }
 
-    if (in_server_block)
-	{
+    if (in_server_block) {
         servers.push_back(current_server);
     }
 
-    return (servers);
+    return servers;
 }

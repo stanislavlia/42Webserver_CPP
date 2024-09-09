@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/09 13:07:20 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/09 13:19:43 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ int main(int ac, char **av)
     }
 
     ConfigParser Server(av[1]);
-
+    
     std::vector<ServerParam> servers = Server.parse();
     
     if (servers.size() == 0)
