@@ -84,18 +84,19 @@ int    Server::_accept_connection()
 
 std::string Server::render_html(const std::string& path)
 {
-	std::cout << "----------- File path: " << path << std::endl;
-	std::ifstream   file(path.c_str());
 
-	if (!file.is_open())
-	{
-		std::cerr << "Failed to open HTML file: " << path << std::endl;
-		return "<html><body><h1>404 Not Found</h1></body></html>";
-	};
+    std::ifstream file(path.c_str());
 
-	std::stringstream  stream_buffer;
-	stream_buffer << file.rdbuf();
-	return stream_buffer.str();
+    if (!file.is_open())
+    {
+        std::cerr << "Failed to open HTML file: " << path << std::endl;
+        return "<html><body><h1>404 Not Found</h1></body></html>";
+    };
+
+    std::stringstream  stream_buffer;
+    stream_buffer << file.rdbuf();
+    return stream_buffer.str();
+
 };  
 
 
@@ -119,83 +120,71 @@ void    Server::setup_server()
 
 
 
-void    Server::run()
+void Server::run()
 {
-	int activity;
-	int max_fd = _server_fd;
-	int new_socket;
-	int valread;
 
-	bool is_running = true;
-	char buffer[BUFF_SIZE] = {0};
+    int activity;
+    int max_fd = _server_fd;
+    int new_socket;
+    int valread;
 
-	while (is_running)
-	{
-		fd_set current_fds = read_fds;
+    bool is_running = true;
+    char buffer[BUFF_SIZE] = {0};
 
-	  //=================FD-SET API===============================
-	  //read_fds is the set of file descriptors being monitored for incoming data.
-	  //FD_SET() adds a file descriptor to the set.
-	  //FD_ZERO() clears the set.
-	  //FD_CLR() removes a file descriptor from the set.
-	  //FD_ISSET() checks if a file descriptor is ready (i.e., has data available or is ready to accept new connections).
+    while (is_running)
+    {
+        fd_set current_fds = read_fds;
 
-		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-		if (activity < 0)
-			continue;
+        activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+        if (activity < 0)
+            continue;
 
-		//check incoming connection
-		if (FD_ISSET(_server_fd, &current_fds))
-		{
-			new_socket = _accept_connection();
-			if (new_socket >= 0)
-			{   
-				// add socket to fd set
-				FD_SET(new_socket, &read_fds);
-				if (new_socket > max_fd)
-					max_fd = new_socket;
-				
-				std::cout << "New connection accepted. SOCKET FD: " << new_socket << std::endl;
-			}
-		}
-		
+        if (FD_ISSET(_server_fd, &current_fds))
+        {
+            new_socket = _accept_connection();
+            if (new_socket >= 0)
+            {   
+                FD_SET(new_socket, &read_fds);
+                if (new_socket > max_fd)
+                    max_fd = new_socket;
+                
+                std::cout << "New connection accepted. SOCKET FD: " << new_socket << std::endl;
+            }
+        }
 
-		//========Perform I/O on sockets=============
-		for (int i = 0; i <= max_fd; i++)
-		{
-			if (FD_ISSET(i, &current_fds) && i != _server_fd) //skip server_fd
-			{
-				valread = read(i, buffer, sizeof(buffer));
-				if (valread == 0)
-				{
-					std::cout << "Client disconnected; SOCKET_FD " << i << std::endl;
-					close(i);
-					FD_CLR(i, &read_fds); //remove socket from set
-				}
-				else if (valread > 0)
-				{
-					std::cout << "Received message " << buffer << std::endl;
-					std::cout << "Sending back ...\n";
-					if (strncmp(buffer, "GET", 3) == 0)
-					{
-						std::string html_content = render_html("../static/index.html");
+        for (int i = 0; i <= max_fd; i++)
+        {
+            if (FD_ISSET(i, &current_fds) && i != _server_fd) 
+            {
+                valread = read(i, buffer, sizeof(buffer));
+                if (valread == 0)
+                {
+                    std::cout << "Client disconnected; SOCKET_FD " << i << std::endl;
+                    close(i);
+                    FD_CLR(i, &read_fds);
+                }
+                else if (valread > 0)
+                {
+                    std::cout << "Sending back ...\n";
+                    if (strncmp(buffer, "GET", 3) == 0)
+                    {
+                        std::string html_content = render_html("/home/stanislav/Desktop/42Webserver_CPP/static/index.html");
 
-						std::stringstream ss;
-						ss << html_content.length();
-						std::string content_length_str = ss.str();
+                        std::stringstream ss;
+                        ss << html_content.length();
 
-						std::string response = 
-						"HTTP/1.1 200 OK\r\n"
-						"Content-Type: text/html\r\n"
-						"Content-Length: " + content_length_str + "\r\n"
-						"\r\n" + html_content;
-						
-						send(i, response.c_str(), response.length(), 0); 
-					}
-					else
-						send(i, buffer, valread, 0);
-				}
-			}   
-		}
-	}
+                        std::string response = 
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: text/html\r\n"
+                        "Content-Length: " + ss.str() + "\r\n"
+                        "\r\n" + html_content;
+
+                        send(i, response.c_str(), response.length(), 0); 
+                    }
+                    else
+                        send(i, buffer, valread, 0);
+                }
+            }   
+        }
+    }
 };
