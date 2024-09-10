@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 09:29:37 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/10 12:20:46 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,14 +64,6 @@ void    parseIndex(std::istringstream& iss, ServerParam& server)
     server.setIndex(index);
 }
 
-void    parseErrorPage(std::istringstream& iss, ServerParam& server)
-{
-    std::string error_page;
-    iss >> error_page;
-    std::cout << "Error page: ";
-    std::cout << error_page << std::endl;
-    server.setErrorPage(404, error_page);
-}
 
 void    parseAutoIndex(std::istringstream& iss, ServerParam& server)
 {
@@ -107,6 +99,48 @@ void    parseRoot(std::istringstream& iss, ServerParam& server)
     std::cout << "Root with Getter inside ParseRoot: " << server.getRoot() << std::endl;
 }
 
+void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
+{
+    std::string methods;
+    std::getline(iss, methods, ';');
+    methods = methods.substr(1);
+    std::cout << "Methods Before setting : " << methods << std::endl;
+    std::vector<std::string> allowed_methods;
+    std::string method;
+    std::istringstream iss_methods(methods);
+    while (std::getline(iss_methods, method, ' '))
+    {
+        allowed_methods.push_back(method);
+    }
+    server.setAllowedMethods(allowed_methods);
+    std::cout << "Methods with Getter inside ParseAllowedMethods: " << server.getAllowedMethods().size() << std::endl;
+}
+
+void parseErrorPage(std::istringstream& iss, ServerParam& server)
+{
+    std::string error_page;
+    getline(iss, error_page, ';');
+    std::cout << "Error page before setting: " << error_page << std::endl;
+    size_t space_pos = error_page.find(' ');
+    if (space_pos != std::string::npos)
+    {
+        std::string error_code_str = error_page.substr(0, space_pos);
+        std::cout << "Error code str: " << error_code_str << std::endl;
+        std::string error_path = error_page.substr(space_pos + 1);
+
+        int error_code = std::atoi(error_code_str.c_str());
+
+        std::cout << "Error code: " << error_code << std::endl;
+        std::cout << "Error path: " << error_path << std::endl;
+
+        // Set the error page in the server object
+        server.setErrorPage(error_code, error_path);
+    }
+    else
+    {
+        std::cerr << "Error: Invalid error page format" << std::endl;
+    }
+}
 
 // MAIN FUNCTION
 
@@ -119,6 +153,9 @@ void    parseRoot(std::istringstream& iss, ServerParam& server)
  * - error_page
  * - location
  * - server
+ * - autoindex
+ * - root
+ * - allowed_methods
  * - }
  * 
  *  @return std::vector<ServerParam> servers
@@ -135,13 +172,15 @@ std::vector<ServerParam>    ConfigParser::parse()
         throw std::runtime_error("Unable to open config file: " + _configFile);
     }
     
-    std::string tokens[] = {"listen", "server_name", "index", "error_page", "location", "autoindex", "root", "server", "}"};
-    void (*functions[])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseIndex, parseErrorPage, parseAutoIndex, parseRoot};
+    std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "index", "error_page", "location", "autoindex", "root", "allowed_methods" , "server", "}"};
+    void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseIndex, parseErrorPage, parseAutoIndex, parseRoot, parseAllowedMethods};
+    
 
     std::string line;
     ServerParam current_server;
     bool in_server_block = false;
     bool in_location_block = false;
+
 
     while (std::getline(file, line))
     {
@@ -152,36 +191,39 @@ std::vector<ServerParam>    ConfigParser::parse()
             continue ;
 
         bool token_found = false;
-        for (int i = 0; i < 9; ++i)
+        for (int i = 0; i < TOKEN_COUNT; ++i)
         {
             if (token == tokens[i])
             {
                 token_found = true;
-                switch (i)
+                switch (static_cast<FunctionType>(i))
                 {
-                    case 0:
+                    case LISTEN:
                         functions[0](iss, current_server);
                         break;
-                    case 1:
+                    case SERVER_NAME:
                         functions[1](iss, current_server);
                         break;
-                    case 2:
+                    case INDEX:
                         if (in_location_block)
                             functions[2](iss, current_server);
                         break;
-                    case 3:
+                    case ERROR_PAGE:
                         functions[3](iss, current_server);
                         break;
-                    case 4:
+                    case LOCATION:
                         in_location_block = true;
                         break;
-                    case 5:
+                    case AUTOINDEX:
                         functions[4](iss, current_server);
                         break;
-                    case 6:
+                    case ROOT:
                         functions[5](iss, current_server);
                         break;
-                    case 7:
+                    case ALLOWED_METHODS:
+                        functions[6](iss, current_server);
+                        break;
+                    case SERVER:
                         if (in_server_block)
                         {
                             servers.push_back(current_server);
@@ -189,7 +231,7 @@ std::vector<ServerParam>    ConfigParser::parse()
                         }
                         in_server_block = true;
                         break;
-                    case 8:
+                    case BRACKET:
                         if (in_location_block)
                             in_location_block = false;
                         else if (in_server_block)
@@ -198,6 +240,11 @@ std::vector<ServerParam>    ConfigParser::parse()
                             current_server = ServerParam();
                             in_server_block = false;
                         }
+                        break;
+                    case UNKNOWN:
+                        throw std::runtime_error("Unknown directive: " + token);
+                        break;
+                    case TOKEN_COUNT:
                         break;
                 }
                 break;

@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:17:08 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 09:32:51 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/10 10:05:50 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ ServerParam::ServerParam(void)
 	this->root = "";
 	this->index = "";
 	this->autoIndex = false;
-	this->allowedMethods[""] = "";
 	this->errorPage[0] = ""; 
 }
 
@@ -41,6 +40,7 @@ ServerParam &ServerParam::operator=(ServerParam const &rhs)
 		this->errorPage = rhs.errorPage;
 		this->root = rhs.root;
 		this->autoIndex = rhs.autoIndex;
+		this->allowedMethods = rhs.allowedMethods;
 	}
 	return *this;
 }
@@ -55,34 +55,39 @@ ServerParam::~ServerParam(void)
 
 // SETTERS
 
-void ServerParam::setListen(int port)
+void	ServerParam::setListen(int port)
 {
 	this->port = port;
 }
 
-void ServerParam::setServerName(std::string serverName)
+void	ServerParam::setServerName(std::string serverName)
 {
 	this->serverName = serverName;
 }
 
-void ServerParam::setIndex(std::string index)
+void	ServerParam::setIndex(std::string index)
 {
 	this->index = index;
 }
 
-void ServerParam::setErrorPage(int errorValue, std::string errorPage)
+void	ServerParam::setErrorPage(int errorValue, std::string errorPage)
 {
 	this->errorPage[errorValue] = errorPage;
 }
 
-void ServerParam::setRoot(std::string root)
+void	ServerParam::setRoot(std::string root)
 {
 	this->root = root;
 }
 
-void ServerParam::setAutoIndex(bool autoIndex)
+void	ServerParam::setAutoIndex(bool autoIndex)
 {
 	this->autoIndex = autoIndex;
+}
+
+void	ServerParam::setAllowedMethods(std::vector<std::string> allowedMethods)
+{
+	this->allowedMethods = allowedMethods;
 }
 
 // END OF SETTERS
@@ -94,7 +99,7 @@ int ServerParam::getPort(void) const
 	return this->port;
 }
 
-std::string ServerParam::getServerName(void) const
+std::string	ServerParam::getServerName(void) const
 {
 	return this->serverName;
 }
@@ -117,4 +122,9 @@ std::string ServerParam::getRoot(void) const
 bool ServerParam::getAutoIndex(void) const
 {
 	return this->autoIndex;
+}
+
+std::vector<std::string> ServerParam::getAllowedMethods(void) const
+{
+	return this->allowedMethods;
 }
