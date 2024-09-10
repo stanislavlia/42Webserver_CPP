@@ -10,6 +10,7 @@ class Server
         struct sockaddr_in  *_sock_address;
         int  _server_fd;
         fd_set  read_fds;
+		const std::string _server_name; 
 
         void    _create_server_socket();
         void    _set_socket_options(int opt);
@@ -19,7 +20,7 @@ class Server
         int     _accept_connection();
 
         std::string render_html(const std::string& path);
-        void    respond_with_html(int client_fd);
+        void    respond_with_html(int client_fd, const std::string& path);
         
     
     public:
