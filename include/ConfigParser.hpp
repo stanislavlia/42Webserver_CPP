@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 12:01:15 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/10 12:50:18 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 enum FunctionType {
 	LISTEN,
 	SERVER_NAME,
+	CLIENT_MAX_BODY_SIZE,
 	INDEX,
 	ERROR_PAGE,
 	LOCATION,
