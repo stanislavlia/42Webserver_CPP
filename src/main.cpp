@@ -64,13 +64,3 @@ int main(int ac, char **av)
 
 };
 
-// int main()
-// {
-// 	struct sockaddr_in address;
-// 	Server  server(&address, PORT);
-
-// 	server.setup_server();
-// 	server.run();
-	
-	
-// };
