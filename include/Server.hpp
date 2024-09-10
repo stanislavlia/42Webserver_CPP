@@ -8,6 +8,8 @@ class Server
 {  
     private:
         int _port;
+        const char* _host;
+
         struct sockaddr_in  *_sock_address;
         int  _server_fd;
         fd_set  read_fds;
@@ -15,7 +17,7 @@ class Server
 
         void    _create_server_socket();
         void    _set_socket_options(int opt);
-        void    _setup_socketaddress(int host);
+        void    _setup_socketaddress();
         void    _bind_socket();
         void     _listen_socket();
         int     _accept_connection();
@@ -25,7 +27,7 @@ class Server
         
     
     public:
-        Server(struct sockaddr_in  *_sock_address, int port);
+        Server(struct sockaddr_in  *_sock_address, int port, const char* host);
         Server();
         ~Server();
 

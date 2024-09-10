@@ -56,7 +56,7 @@ int main(int ac, char **av)
     // Run first server
     struct sockaddr_in address;
 
-    Server server(&address, servers[0].getPort());
+    Server server(&address, servers[0].getPort(), HOST);
     server.setup_server();
     server.run();
 
