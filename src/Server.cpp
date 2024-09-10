@@ -10,7 +10,7 @@ Server::Server()
 Server::Server(struct sockaddr_in  *sock_address, int port) 
 : _port(port), _sock_address(sock_address) 
 {   
-	std::cout << "Server initialized\n";
+	Logger::logMsg(DEBUG, "Server initialized");
 };
 
 
@@ -27,7 +27,7 @@ void    Server::_create_server_socket()
 
 	if (_server_fd == -1)
 	{    //throw exception later
-		std::cerr << "Socket creation failed\n";
+		Logger::logMsg(ERROR, "Socket creation failed");
 		exit(EXIT_FAILURE); 
 	};
 	// Set the server socket to non-blocking mode
@@ -39,7 +39,7 @@ void Server::_set_socket_options(int opt)
 {
 	if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) != 0)
 	{
-		std::cerr << "setsockopt failed\n"; //replace with exceptions later
+		Logger::logMsg(ERROR, "setsockopt failed"); //replace with exceptions later
 		close(_server_fd);
 		exit(EXIT_FAILURE);
 	}
@@ -56,7 +56,7 @@ void    Server::_bind_socket()
 {
 	if (bind(_server_fd, (struct sockaddr *)_sock_address, sizeof(*_sock_address)) < 0)
 	{
-		std::cerr << "Failed to bind socket" << std::endl;
+		Logger::logMsg(ERROR, "Failed to bind socket");
 		close(_server_fd);
 		exit(EXIT_FAILURE);
 	}
@@ -66,7 +66,7 @@ void    Server::_listen_socket()
 {
 	if (listen(_server_fd, CONN_QUEUE) < 0)
 	{
-		std::cerr << "Failed to listen\n";
+		Logger::logMsg(ERROR, "Failed to listen");
 		close(_server_fd);
 		exit(EXIT_FAILURE);
 	}
@@ -78,25 +78,23 @@ int    Server::_accept_connection()
 	socklen_t addrlen = sizeof(*_sock_address);
 
 	new_socket = accept(_server_fd, (struct sockaddr*) _sock_address, &addrlen);
-	//Add some error handling & exceptions
+	// Add some error handling & exceptions
 	return new_socket;
 };
 
 std::string Server::render_html(const std::string& path)
 {
-
     std::ifstream file(path.c_str());
 
     if (!file.is_open())
     {
-        std::cerr << "Failed to open HTML file: " << path << std::endl;
+        Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
         return render_html("./static/not_found.html");
     };
 
     std::stringstream  stream_buffer;
     stream_buffer << file.rdbuf();
     return stream_buffer.str();
-
 };  
 
 void	Server::respond_with_html(int client_fd, const std::string& path)
@@ -123,12 +121,12 @@ void    Server::setup_server()
 	FD_ZERO(&read_fds);
 	FD_SET(_server_fd, &read_fds);
 
-	std::cout << "Server socket created and configured successfully.\n";
-	std::cout << "Server FD: " << _server_fd << std::endl;
+	Logger::logMsg(INFO, "Server socket created and configured successfully");
+	Logger::logMsg(DEBUG, "Server FD: %d", _server_fd);
 
 	_bind_socket();
 	_listen_socket();
-	std::cout << "Listening on port: " << _port << std::endl;
+	Logger::logMsg(DEBUG, "Listening on port: %d", _port);
 
 };
 
@@ -160,7 +158,7 @@ void Server::run()
                 if (new_socket > max_fd)
                     max_fd = new_socket;
                 
-                std::cout << "New connection accepted. SOCKET FD: " << new_socket << std::endl;
+                Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
             }
         }
 
@@ -171,19 +169,21 @@ void Server::run()
                 valread = read(i, buffer, sizeof(buffer));
                 if (valread == 0)
                 {
-                    std::cout << "Client disconnected; SOCKET_FD " << i << std::endl;
+                    Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
                     close(i);
                     FD_CLR(i, &read_fds);
                 }
                 else if (valread > 0)
                 {
-                    std::cout << "Sending back ...\n";
                     if (strncmp(buffer, "GET / ", 6) == 0)
                         respond_with_html(i, "./static/index.html");
 					else if (strncmp(buffer, "GET /home", 9) == 0)
 						respond_with_html(i, "./static/home.html");
-                    else 
+                    else if (strncmp(buffer, "GET ", 4) == 0)
+                    {
                         respond_with_html(i, "./static/not_found.html");
+                        Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
+                    }
                 }
             }   
         }

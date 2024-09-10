@@ -34,10 +34,10 @@ public:
     static std::map<LogPriority, std::string> prio_str;
     static std::map<LogPriority, const char*> prior_to_color;
 
-    void logMsg(LogPriority prio,  const char* msg, ...);
+    static void logMsg(LogPriority prio,  const char* msg, ...);
 
 private:
-    std::string    getTimeStamp();
+    static std::string    getTimeStamp();
     static std::map<LogPriority, std::string> initPriotToStrMap();
     static std::map<LogPriority, const char*> initPriotToColorMap();
 };

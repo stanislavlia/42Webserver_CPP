@@ -2,6 +2,7 @@
 # define SERVER_HPP
 
 #include "Webserver.hpp"
+#include "Logger.hpp"
 
 class Server
 {  
