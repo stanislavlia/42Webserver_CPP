@@ -14,10 +14,16 @@
 #include "Server.hpp"
 #include "ServerParam.hpp"
 #include "Webserver.hpp"
+#include "Logger.hpp"
 
 int main(int ac, char **av)
 {
-	// Added this
+	Logger logger;
+
+	logger.logMsg(INFO, "Program has started...");
+	logger.logMsg(ERROR, "Error occured %s %s", "MALLOC FAILED!");
+	logger.logMsg(WARNING, "PORT is not specified correcly!");
+	// Added this;
 	if (ac != 2)
 	{
 		std::cerr << "Usage: ./webserv <config_file>" << std::endl;
@@ -51,7 +57,6 @@ int main(int ac, char **av)
 			}
 		}
 	};
-
 
 	//Run first server
 	std::cout << "===========RUNTIME===========\n";
