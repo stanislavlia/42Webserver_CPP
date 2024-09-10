@@ -1,6 +1,6 @@
 #include "Logger.hpp"
+#include "Webserver.hpp"
 
-// Initialize the priority string map
 std::map<LogPriority, std::string> Logger::prio_str = Logger::initPriotToStrMap();
 std::map<LogPriority,  const char*>  Logger::prior_to_color = Logger::initPriotToColorMap();
 
@@ -30,6 +30,17 @@ std::map<LogPriority, const char*> Logger::initPriotToColorMap()
     return p_to_color_map;
 }
 
+std::string Logger::getTimeStamp()
+{
+    std::time_t now = std::time(NULL);
+    std::tm* localTime = std::localtime(&now);
+    char buffer[80];
+
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S ", localTime);
+
+    return std::string(buffer);
+}
+
 void Logger::logMsg(LogPriority prio,  const char* msg, ...) 
 {
     va_list args;
@@ -37,7 +48,7 @@ void Logger::logMsg(LogPriority prio,  const char* msg, ...)
     const char* color;
 
     color = prior_to_color[prio];
-    std::cout << color << prio_str[prio];
+    std::cout << color << getTimeStamp() << prio_str[prio];
 
     vprintf(msg, args);
 

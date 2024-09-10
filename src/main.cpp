@@ -20,9 +20,12 @@ int main(int ac, char **av)
 {
 	Logger logger;
 
+	//test logs
+	logger.logMsg(DEBUG, "Need config...");
 	logger.logMsg(INFO, "Program has started...");
-	logger.logMsg(ERROR, "Error occured %s %s", "MALLOC FAILED!");
 	logger.logMsg(WARNING, "PORT is not specified correcly!");
+	logger.logMsg(ERROR, "Error occured %s %d", "MALLOC FAILED!", 44);
+
 	// Added this;
 	if (ac != 2)
 	{

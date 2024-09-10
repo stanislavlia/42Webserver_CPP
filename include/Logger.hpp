@@ -6,6 +6,9 @@
 #include <cstdarg>
 #include <iostream>
 #include <cstdio>
+#include <ctime>
+#include <sstream>
+#include <string>
 
 #define LIGHT_RED      "\x1B[91m"
 #define WHITE          "\x1B[37m"
@@ -34,6 +37,7 @@ public:
     void logMsg(LogPriority prio,  const char* msg, ...);
 
 private:
+    std::string    getTimeStamp();
     static std::map<LogPriority, std::string> initPriotToStrMap();
     static std::map<LogPriority, const char*> initPriotToColorMap();
 };
