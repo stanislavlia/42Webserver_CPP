@@ -91,7 +91,7 @@ std::string Server::render_html(const std::string& path)
     if (!file.is_open())
     {
         std::cerr << "Failed to open HTML file: " << path << std::endl;
-        return "<html><body><h1>404 Not Found</h1></body></html>";
+        return render_html("./static/not_found.html");
     };
 
     std::stringstream  stream_buffer;
@@ -129,7 +129,7 @@ void    Server::setup_server()
 
 	_bind_socket();
 	_listen_socket();
-	std::cout << "Listening on port: " << PORT << std::endl;
+	std::cout << "Listening on port: " << _port << std::endl;
 
 };
 
