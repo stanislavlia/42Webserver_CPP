@@ -19,7 +19,7 @@ class Server
         int     _accept_connection();
 
         std::string render_html(const std::string& path);
-        void    respond_with_html(int client_fd);
+        void    respond_with_html(int client_fd, const std::string& path);
         
     
     public:

@@ -21,10 +21,8 @@ YELLOW		:= "\033[1;33m"
 GREEN		:= "\033[1;32m"
 END			:= "\033[0m"
 
-# Declare phony targets
 .PHONY: all clean fclean re
 
-# Default target for building the project
 all: $(NAME)
 
 # Main target
@@ -32,20 +30,16 @@ $(NAME): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(NAME) $(OBJS)
 	@echo $(GREEN) "\n\tProject is compiled\n" ${END}
 
-# Rule for generating dependency and object files
 $(OBJDIR)/%.o: ./%.cpp $(HDR)
 	$(MKDIR) $(@D)
 	$(CXX) $(CXXFLAGS) $(INC) -g -c -o $@ $< -MD
 
-# Target for cleaning the project
 clean:
 	$(RM) $(OBJDIR)
 	@echo $(YELLOW) "\n\tProject 'clean' status: DONE\n" ${END}
 
-# Target for fully cleaning the project
 fclean: clean
 	$(RM) $(NAME)
 	@echo $(YELLOW) "\n\tProject 'clean' status: DONE\n" ${END}
 
-# Target for rebuilding the project
 re: fclean all
