@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:17:08 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/09 13:02:46 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/10 09:32:51 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,11 @@ ServerParam::ServerParam(void)
 {
 	this->port = 0;
 	this->serverName = "";
+	this->root = "";
 	this->index = "";
-	this->errorPage = "";
+	this->autoIndex = false;
+	this->allowedMethods[""] = "";
+	this->errorPage[0] = ""; 
 }
 
 ServerParam::ServerParam(ServerParam const &src)
@@ -36,6 +39,8 @@ ServerParam &ServerParam::operator=(ServerParam const &rhs)
 		this->serverName = rhs.serverName;
 		this->index = rhs.index;
 		this->errorPage = rhs.errorPage;
+		this->root = rhs.root;
+		this->autoIndex = rhs.autoIndex;
 	}
 	return *this;
 }
@@ -65,9 +70,19 @@ void ServerParam::setIndex(std::string index)
 	this->index = index;
 }
 
-void ServerParam::setErrorPage(std::string errorPage)
+void ServerParam::setErrorPage(int errorValue, std::string errorPage)
 {
-	this->errorPage = errorPage;
+	this->errorPage[errorValue] = errorPage;
+}
+
+void ServerParam::setRoot(std::string root)
+{
+	this->root = root;
+}
+
+void ServerParam::setAutoIndex(bool autoIndex)
+{
+	this->autoIndex = autoIndex;
 }
 
 // END OF SETTERS
@@ -89,7 +104,17 @@ std::string ServerParam::getIndex(void) const
 	return this->index;
 }
 
-std::string ServerParam::getErrorPage(void) const
+std::map<int, std::string> ServerParam::getErrorPage(void) const
 {
 	return this->errorPage;
+}
+
+std::string ServerParam::getRoot(void) const
+{
+	return this->root;
+}
+
+bool ServerParam::getAutoIndex(void) const
+{
+	return this->autoIndex;
 }

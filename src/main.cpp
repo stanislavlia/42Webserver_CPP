@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/09 13:19:43 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/10 08:24:40 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,9 @@ int main(int ac, char **av)
             std::cout << "Server " << i << " listen on port " << servers[i].getPort() << std::endl;
             std::cout << "Server " << i << " server_name is " << servers[i].getServerName() << std::endl;
             std::cout << "Server " << i << " index is " << servers[i].getIndex() << std::endl;
-            std::cout << "Server " << i << " error_page is " << servers[i].getErrorPage() << std::endl;
+            std::cout << "Server " << i << " root is " << servers[i].getRoot() << std::endl;
+            std::cout << "Server " << i << " auto_index is " << servers[i].getAutoIndex() << std::endl;
+            // std::cout << "Server " << i << " error_page is " << servers[i].getErrorPage().at(404) << std::endl;
         }
     }
     // STAS PART
