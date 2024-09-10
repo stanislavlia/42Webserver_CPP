@@ -15,53 +15,65 @@
 #include "ServerParam.hpp"
 #include "Webserver.hpp"
 
-int main(int ac, char **av)
+// int main(int ac, char **av)
+// {
+// 	// Added this
+// 	if (ac != 2)
+// 	{
+// 		std::cerr << "Usage: ./webserv <config_file>" << std::endl;
+// 		return (1);
+// 	}
+
+// 	ConfigParser Server(av[1]);
+	
+// 	std::vector<ServerParam> servers = Server.parse();
+	
+// 	if (servers.size() == 0)
+// 	{
+// 		std::cerr << "No server found in config file" << std::endl;
+// 		return (1);
+// 	}
+// 	else
+// 	{
+// 		for (size_t i = 0; i < servers.size(); i++)
+// 		{
+// 			std::cout << "Server " << i << " listen on port " << servers[i].getPort() << std::endl;
+// 			std::cout << "Server " << i << " server_name is " << servers[i].getServerName() << std::endl;
+// 			std::cout << "Server " << i << " index is " << servers[i].getIndex() << std::endl;
+// 			std::cout << "Server " << i << " root is " << servers[i].getRoot() << std::endl;
+// 			std::cout << "Server " << i << " auto_index is " << servers[i].getAutoIndex() << std::endl;
+// 			for (size_t j = 0; j < servers[i].getAllowedMethods().size(); j++)
+// 			{
+// 				std::cout << "Server " << i << " allowed_methods are: ";
+// 				std::cout << servers[i].getAllowedMethods().at(j) << std::endl;
+// 			}
+// 			for (size_t j = 0; j < servers[i].getErrorPage().size(); j++)
+// 			{
+// 				std::cout << "Server " << i << " error_page are: ";
+// 				std::cout << servers[i].getErrorPage().at(j) << std::endl;
+// 			}
+// 		}
+// 	}
+// 	// STAS PART
+
+// 	// (void)ac;
+// 	// (void)av;
+// 	// struct sockaddr_in address;
+
+// 	// Server  server(&address, PORT);
+
+// 	// server.setup_server();
+// 	// server.run();
+
+// };
+
+int main()
 {
-	// Added this
-	if (ac != 2)
-	{
-		std::cerr << "Usage: ./webserv <config_file>" << std::endl;
-		return (1);
-	}
+	struct sockaddr_in address;
+	Server  server(&address, PORT);
 
-	ConfigParser Server(av[1]);
+	server.setup_server();
+	server.run();
 	
-	std::vector<ServerParam> servers = Server.parse();
 	
-	if (servers.size() == 0)
-	{
-		std::cerr << "No server found in config file" << std::endl;
-		return (1);
-	}
-	else
-	{
-		for (size_t i = 0; i < servers.size(); i++)
-		{
-			std::cout << "Server " << i << " listen on port " << servers[i].getPort() << std::endl;
-			std::cout << "Server " << i << " server_name is " << servers[i].getServerName() << std::endl;
-			std::cout << "Server " << i << " client_max_body_size is " << servers[i].getClientMaxBodySize() << std::endl;
-			std::cout << "Server " << i << " index is " << servers[i].getIndex() << std::endl;
-			std::cout << "Server " << i << " root is " << servers[i].getRoot() << std::endl;
-			std::cout << "Server " << i << " auto_index is " << servers[i].getAutoIndex() << std::endl;
-			for (size_t j = 0; j < servers[i].getAllowedMethods().size(); j++)
-			{
-				std::cout << "Server " << i << " allowed_methods are: ";
-				std::cout << servers[i].getAllowedMethods().at(j) << std::endl;
-			}
-			std::cout << "Server " << servers[i].getErrorPage().at(404) << std::endl;
-			std::cout << "Server " << servers[i].getErrorPage().at(500) << std::endl;
-			std::cout << "Server " << servers[i].getErrorPage().at(413) << std::endl;
-		}
-	}
-	// STAS PART
-
-	// (void)ac;
-	// (void)av;
-	// struct sockaddr_in address;
-
-	// Server  server(&address, PORT);
-
-	// server.setup_server();
-	// server.run();
-
 };
