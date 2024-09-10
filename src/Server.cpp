@@ -52,7 +52,6 @@ void Server::_setup_socketaddress(int host)
 	_sock_address->sin_port = htons(_port);
 };
 
-
 void    Server::_bind_socket()
 {
 	if (bind(_server_fd, (struct sockaddr *)_sock_address, sizeof(*_sock_address)) < 0)
@@ -132,8 +131,6 @@ void    Server::setup_server()
 	std::cout << "Listening on port: " << _port << std::endl;
 
 };
-
-
 
 void Server::run()
 {
