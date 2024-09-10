@@ -18,57 +18,47 @@
 
 int main(int ac, char **av)
 {
-	Logger logger;
+    Logger logger;
+    
+    // Added this;
+    if (ac != 2)
+    {
+        logger.logMsg(ERROR, "Usage: ./webserv <config_file>");
+        return (1);
+    }
 
-	//test logs
-	logger.logMsg(DEBUG, "Need config...");
-	logger.logMsg(INFO, "Program has started...");
-	logger.logMsg(WARNING, "PORT is not specified correcly!");
-	logger.logMsg(ERROR, "Error occured %s %d", "MALLOC FAILED!", 44);
+    ConfigParser ServerConf(av[1]);
+    std::vector<ServerParam> servers = ServerConf.parse();
 
-	// Added this;
-	if (ac != 2)
-	{
-		std::cerr << "Usage: ./webserv <config_file>" << std::endl;
-		return (1);
-	}
+    if (servers.size() == 0)
+    {
+        logger.logMsg(ERROR, "No server found in config file.");
+        return (1);
+    }
+    else
+    {
+        for (size_t i = 0; i < servers.size(); i++)
+        {
+            logger.logMsg(INFO, "Server %zu listens on port %d", i, servers[i].getPort());
+            logger.logMsg(INFO, "Server %zu server_name is %s", i, servers[i].getServerName().c_str());
+            logger.logMsg(INFO, "Server %zu index is %s", i, servers[i].getIndex().c_str());
+            logger.logMsg(INFO, "Server %zu root is %s", i, servers[i].getRoot().c_str());
+            logger.logMsg(INFO, "Server %zu auto_index is %d", i, servers[i].getAutoIndex());
 
-	ConfigParser ServerConf(av[1]);
-	
-	std::vector<ServerParam> servers = ServerConf.parse();
-	
-	if (servers.size() == 0)
-	{
-		std::cerr << "No server found in config file" << std::endl;
-		return (1);
-	}
-	else
-	{	
-		std::cout << "===========SERVER INFO===========\n";
-		for (size_t i = 0; i < servers.size(); i++)
-		{	
+            // Log allowed methods for each server
+            for (size_t j = 0; j < servers[i].getAllowedMethods().size(); j++)
+            {
+                logger.logMsg(INFO, "Server %zu allowed_methods: %s", i, servers[i].getAllowedMethods().at(j).c_str());
+            }
+        }
+    }
 
-			std::cout << "Server " << i << " listen on port " << servers[i].getPort() << std::endl;
-			std::cout << "Server " << i << " server_name is " << servers[i].getServerName() << std::endl;
-			std::cout << "Server " << i << " index is " << servers[i].getIndex() << std::endl;
-			std::cout << "Server " << i << " root is " << servers[i].getRoot() << std::endl;
-			std::cout << "Server " << i << " auto_index is " << servers[i].getAutoIndex() << std::endl;
-			for (size_t j = 0; j < servers[i].getAllowedMethods().size(); j++)
-			{
-				std::cout << "Server " << i << " allowed_methods are: ";
-				std::cout << servers[i].getAllowedMethods().at(j) << std::endl;
-			}
-		}
-	};
+    // Run first server
+    struct sockaddr_in address;
 
-	//Run first server
-	std::cout << "===========RUNTIME===========\n";
-	struct sockaddr_in address;
+    Server server(&address, servers[0].getPort());
+    server.setup_server();
+    server.run();
 
-	Server  server(&address, servers[0].getPort());
-
-	server.setup_server();
-	server.run();
-
-};
-
+    return 0;
+}
