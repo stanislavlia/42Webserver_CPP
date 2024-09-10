@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 13:04:43 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 06:57:05 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 
 ConfigParser::ConfigParser(const std::string& configFile) : _configFile(configFile)
 {
-	std::cout << "ConfigParser constructor" << std::endl;
 }
 
 ConfigParser::ConfigParser(ConfigParser const &src)
@@ -35,7 +34,6 @@ ConfigParser &ConfigParser::operator=(ConfigParser const &rhs)
 
 ConfigParser::~ConfigParser()
 {
-	std::cout << "ConfigParser destructor" << std::endl;
 }
 
 // HELPERS FUNCTIONS
@@ -70,23 +68,13 @@ void    parseAutoIndex(std::istringstream& iss, ServerParam& server)
 	std::string line;
 	std::getline(iss, line, ';');
 	line = line.substr(1);
-	std::cout << "Autoindex Before setting : " << line << std::endl;
 
 	if (line == "on")
-	{
 		server.setAutoIndex(true);
-	}
 	else if (line == "off")
-	{
-		std::cout << "Autoindex is off" << std::endl;
 		server.setAutoIndex(false);
-	}
 	else
-	{
-		std::cerr << "Invalid autoindex value: " << line << std::endl;
 		server.setAutoIndex(false);
-	}
-	std::cout << "Autoindex with Getter inside ParseAutoIndex: " << server.getAutoIndex() << std::endl;
 }
 
 void    parseRoot(std::istringstream& iss, ServerParam& server)
@@ -94,9 +82,7 @@ void    parseRoot(std::istringstream& iss, ServerParam& server)
 	std::string root;
 	std::getline(iss, root, ';');
 	root = root.substr(1);
-	std::cout << "Root Before setting : " << root << std::endl;
 	server.setRoot(root);
-	std::cout << "Root with Getter inside ParseRoot: " << server.getRoot() << std::endl;
 }
 
 void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
@@ -104,7 +90,6 @@ void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
 	std::string methods;
 	std::getline(iss, methods, ';');
 	methods = methods.substr(1);
-	std::cout << "Methods Before setting : " << methods << std::endl;
 	std::vector<std::string> allowed_methods;
 	std::string method;
 	std::istringstream iss_methods(methods);
@@ -113,7 +98,6 @@ void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
 		allowed_methods.push_back(method);
 	}
 	server.setAllowedMethods(allowed_methods);
-	std::cout << "Methods with Getter inside ParseAllowedMethods: " << server.getAllowedMethods().size() << std::endl;
 }
 
 void	parseErrorPage(std::istringstream& iss, ServerParam& server)
