@@ -34,6 +34,21 @@ class Server
         void    setup_server();
         void    run();
 
+
+        //================SERVER EXCEPTIONS=====================
+        class SocketHandlingException : public std::runtime_error
+        {
+            public:
+                SocketHandlingException(const std::string& msg)
+                : std::runtime_error("Socket error: " + msg) {}
+        };
+
+        class FileReadException : public std::runtime_error
+        {
+            public:
+                FileReadException(const std::string& filename)
+                : std::runtime_error("File Read Error:  " + filename) {}
+        };
     
 };
 
