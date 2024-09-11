@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 13:02:08 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 11:03:44 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,10 +56,8 @@ int main(int ac, char **av)
     // Run first server
     struct sockaddr_in address;
 
-    Server server(&address, servers[0].getPort(), HOST);
+    Server server(&address, servers);
 
-    try
-    {
     server.setup_server();
     }
     catch (const std::exception& e)

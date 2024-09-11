@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 09:00:54 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 14:28:41 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,25 +14,27 @@
 
 // CANONICAL FORM
 
-Request::Request()
+Request::Request(const ServerParam& config)
+: _config(config), _method(""), _uri(""), _headers(""), _body(""), _valid(false)
 {
 }
 
 Request::Request(const Request& src)
+: _config(src._config), _method(src._method), _uri(src._uri), _headers(src._headers), _body(src._body), _valid(src._valid)
 {
-	*this = src;
 }
 
 Request& Request::operator=(const Request& rhs)
 {
-	if (this != &rhs)
-	{
-		_method = rhs._method;
-		_uri = rhs._uri;
-		_headers = rhs._headers;
-		_body = rhs._body;
-	}
-	return *this;
+    if (this != &rhs)
+    {
+        _method = rhs._method;
+        _uri = rhs._uri;
+        _headers = rhs._headers;
+        _body = rhs._body;
+        _valid = rhs._valid;
+    }
+    return *this;
 }
 
 Request::~Request()
@@ -63,7 +65,44 @@ std::string	Request::getBody() const
 	return _body;
 }
 
+int    Request::isValid() const
+{
+    return _valid;
+}
+
 // PARSERS
+
+void	Request::validateRequest()
+{
+    if (_method.empty())
+    {
+        _valid = 1;
+        return ;
+    }
+    else if (_uri.empty())
+    {
+        std::cout << "URI IS EMPTY" << std::endl;
+        _valid = 3;
+        return ;
+    }
+    else if (_config.getAllowedMethods().size() > 0)
+    {
+        for (size_t i = 0; i < _config.getAllowedMethods().size(); i++)
+        {
+            if (_method == _config.getAllowedMethods().at(i))
+            {
+                break ;
+            }
+            else if (i == _config.getAllowedMethods().size() - 1)
+            {
+                _valid = 2;
+                return ;
+            }
+        }
+    }
+    std::cout << "VALID REQUEST" << std::endl;
+    _valid = 0;
+}
 
 std::vector<std::string> split(const std::string& str, const std::string& delimiter)
 {
@@ -88,6 +127,7 @@ void	Request::parseBody(const std::string& body)
 {
 	_body = body;
 }
+
 
 void Request::parseRequest(const std::string& rawRequest)
 {
@@ -117,5 +157,6 @@ void Request::parseRequest(const std::string& rawRequest)
         bodyStr += line + "\n";
     }
     parseBody(bodyStr);
+    validateRequest();
 }
 
