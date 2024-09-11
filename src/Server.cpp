@@ -83,20 +83,43 @@ int    Server::_accept_connection()
 	return new_socket;
 };
 
+
 std::string Server::render_html(const std::string& path)
 {
-	std::ifstream file(path.c_str());
+    std::ifstream file(path.c_str());
 
-	if (!file.is_open())
-	{
-		Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
-		return render_html("./static/not_found.html");
-	};
+	std::cout << "PATH: " << path << std::endl;
 
-	std::stringstream  stream_buffer;
-	stream_buffer << file.rdbuf();
-	return stream_buffer.str();
-};
+    if (!file.is_open())
+    {
+        Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
+        return render_html("./static/not_found.html");
+    }
+
+    std::stringstream stream_buffer;
+    stream_buffer << file.rdbuf();
+    return stream_buffer.str();
+}
+
+void Server::respond_with_error(int socket, int status_code, const std::string& status_message)
+{
+	std::string path = configs[0].getErrorPage().at(status_code);
+
+	std::string html_content = render_html(path);
+	std::stringstream ss;
+    ss << html_content.length();
+
+    std::stringstream status_code_ss;
+    status_code_ss << status_code;
+
+    std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+                           "Content-Type: text/html\r\n"
+                           "Content-Length: " + ss.str() + "\r\n"
+                           "\r\n" + html_content;
+
+    send(socket, response.c_str(), response.length(), 0);
+}
+
 
 void Server::respond_with_html(int socket, const std::string& path, int status_code, const std::string& status_message)
 {
@@ -207,13 +230,13 @@ void Server::run()
 						if (request.isValid() == 1 || request.isValid() == 3)
 						{
 							// 400 Bad Request
-							respond_with_html(i, "./static/bad_request.html", 400, "Bad Request");
+							respond_with_error(i, 400, "Bad Request");
 							Logger::logMsg(ERROR, "Bad Request %d - code", 400);
 						}
 						if (request.isValid() == 2)
 						{
-							// 405 Method Not Allowed
-							respond_with_html(i, "./static/method_not_allowed.html", 405, "Method Not Allowed");
+							// 405 Method Not Allowed	
+							respond_with_error(i, 405, "Method Not Allowed");
 							Logger::logMsg(ERROR, "Method Not Allowed %d - code", 405);
 						}
 					}

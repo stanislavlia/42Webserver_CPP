@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 06:57:05 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 14:27:50 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,16 +100,21 @@ void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
 	server.setAllowedMethods(allowed_methods);
 }
 
-void	parseErrorPage(std::istringstream& iss, ServerParam& server)
+void parseErrorPage(std::istringstream& iss, ServerParam& server)
 {
-	std::string error_code_str;
-	std::string error_path;
+    std::string error_code_str;
+    std::string error_path;
 
-	iss >> error_code_str >> error_path;
+    // Read the error code and error path
+    iss >> error_code_str;
+    std::getline(iss, error_path, ';');
 
-	int error_code = std::atoi(error_code_str.c_str());
+    // Remove leading whitespace from error_path
+    error_path = error_path.substr(1);
 
-	server.setErrorPage(error_code, error_path);
+    int error_code = std::atoi(error_code_str.c_str());
+
+    server.setErrorPage(error_code, error_path);
 }
 
 void	parseClientMaxBodySize(std::istringstream& iss, ServerParam& server)

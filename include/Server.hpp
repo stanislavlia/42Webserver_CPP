@@ -24,6 +24,7 @@ class Server
 
 		std::string render_html(const std::string& path);
 		void        respond_with_html(int client_fd, const std::string& path, int status_code, const std::string& status_message);
+		void        respond_with_error(int socket, int status_code, const std::string& status_message);
 		
 	
 	public:
