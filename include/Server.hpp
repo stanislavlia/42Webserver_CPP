@@ -10,7 +10,8 @@ class Server
 	private:
 		std::vector<ServerParam> configs;
 		int _port;
-		const char* _host;
+		// const char* _host;
+		std::string _host;
 		struct sockaddr_in  *_sock_address;
 		int  _server_fd;
 		fd_set  read_fds;
