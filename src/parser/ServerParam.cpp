@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:17:08 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 12:58:36 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:45:24 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ ServerParam::ServerParam(void)
 {
 	this->port = 0;
 	this->clientMaxBodySize = 0;
+	this->host = "";
 	this->serverName = "";
 	this->root = "";
 	this->index = "";
@@ -37,6 +38,7 @@ ServerParam &ServerParam::operator=(ServerParam const &rhs)
 	{
 		this->port = rhs.port;
 		this->clientMaxBodySize = rhs.clientMaxBodySize;
+		this->host = rhs.host;
 		this->serverName = rhs.serverName;
 		this->index = rhs.index;
 		this->errorPage = rhs.errorPage;
@@ -46,8 +48,6 @@ ServerParam &ServerParam::operator=(ServerParam const &rhs)
 	}
 	return *this;
 }
-
-
 
 ServerParam::~ServerParam(void)
 {
@@ -97,6 +97,11 @@ void	ServerParam::setClientMaxBodySize(int clientMaxBodySize)
 	this->clientMaxBodySize = clientMaxBodySize;
 }
 
+void	ServerParam::setHost(const char *host)
+{
+	this->host = host;
+}
+
 // void	ServerParam::setErrorPage(std::map<int, std::string> errorPage)
 // {
 // 	this->errorPage = errorPage;
@@ -144,4 +149,9 @@ std::vector<std::string> ServerParam::getAllowedMethods(void) const
 int	ServerParam::getClientMaxBodySize(void) const
 {
 	return this->clientMaxBodySize;
+}
+
+std::string ServerParam::getHost(void) const
+{
+	return this->host;
 }

@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:13:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/10 12:57:35 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:45:32 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ class ServerParam
 {
 	private:
 		int									port;
+		std::string							host;
 		int									clientMaxBodySize;
 		std::string							serverName;
 		std::string							index;
@@ -41,6 +42,7 @@ class ServerParam
 		void	setAutoIndex(bool autoIndex);
 		void	setAllowedMethods(std::vector<std::string> allowedMethods);
 		void	setErrorPage(std::map<int, std::string> errorPage);
+		void	setHost(const char *host);
 		void	setClientMaxBodySize(int clientMaxBodySize);
 
 
@@ -52,6 +54,7 @@ class ServerParam
 		std::vector<std::string>	getAllowedMethods(void) const;
 		std::map<int, std::string>	getErrorPage(void) const;
 		int							getClientMaxBodySize(void) const;
+		std::string					getHost(void) const;
 	
 }	;
 

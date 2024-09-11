@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 12:35:08 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:04:48 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class	Request
 		std::string _uri;
 		std::string _headers;
 		std::string _body;
-		int		_valid;
+		int			_valid;
 
 		void    parseHeaders(const std::string& headers);
 		void    parseBody(const std::string& body);

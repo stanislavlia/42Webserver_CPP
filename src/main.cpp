@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 11:03:44 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:45:47 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ int main(int ac, char **av)
         for (size_t i = 0; i < servers.size(); i++)
         {
             logger.logMsg(INFO, "Server %zu listens on port %d", i, servers[i].getPort());
+            logger.logMsg(INFO, "Server %zu host is %s", i, servers[i].getHost().c_str());
             logger.logMsg(INFO, "Server %zu server_name is %s", i, servers[i].getServerName().c_str());
             logger.logMsg(INFO, "Server %zu index is %s", i, servers[i].getIndex().c_str());
             logger.logMsg(INFO, "Server %zu root is %s", i, servers[i].getRoot().c_str());
@@ -58,6 +59,8 @@ int main(int ac, char **av)
 
     Server server(&address, servers);
 
+    try
+    {
     server.setup_server();
     }
     catch (const std::exception& e)

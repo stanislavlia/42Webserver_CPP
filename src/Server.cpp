@@ -12,6 +12,7 @@ Server::Server(struct sockaddr_in  *sock_address, const std::vector<ServerParam>
 {
 	Logger::logMsg(DEBUG, "Server initialized");
 	_port = server_param[0].getPort();
+	_host = server_param[0].getHost().c_str();
 };
 
 
@@ -41,7 +42,7 @@ void Server::_set_socket_options(int opt)
 	}
 }
 
-void Server::_setup_socketaddress()
+void	Server::_setup_socketaddress()
 {
 	_sock_address->sin_family = AF_INET;
 	//_sock_address->sin_addr.s_addr = host;
