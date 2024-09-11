@@ -5,13 +5,13 @@
 
 Server::Server()
 {
-
 };
 
-Server::Server(struct sockaddr_in  *sock_address, int port) 
-: _port(port), _sock_address(sock_address) 
-{   
+Server::Server(struct sockaddr_in  *sock_address, const std::vector<ServerParam>& server_param) 
+: configs(server_param) , _sock_address(sock_address)
+{
 	Logger::logMsg(DEBUG, "Server initialized");
+	_port = server_param[0].getPort();
 };
 
 
@@ -96,22 +96,43 @@ std::string Server::render_html(const std::string& path)
 	std::stringstream  stream_buffer;
 	stream_buffer << file.rdbuf();
 	return stream_buffer.str();
-};  
-
-void	Server::respond_with_html(int client_fd, const std::string& path)
-{
-	std::string html_content = render_html(path); //need to add exceptions
-
-	std::stringstream ss;
-	ss << html_content.length();
-
-	std::string response = "HTTP/1.1 200 OK\r\n"
-						"Content-Type: text/html\r\n"
-						"Content-Length: " + ss.str() + "\r\n"
-						"\r\n" + html_content;
-
-	send(client_fd, response.c_str(), response.length(), 0); 
 };
+
+void Server::respond_with_html(int socket, const std::string& path, int status_code, const std::string& status_message)
+{
+    std::string html_content = render_html(path); //need to add exceptions
+
+    std::stringstream ss;
+    ss << html_content.length();
+
+    std::stringstream status_code_ss;
+    status_code_ss << status_code;
+
+    std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+                           "Content-Type: text/html\r\n"
+                           "Content-Length: " + ss.str() + "\r\n"
+                           "\r\n" + html_content;
+
+    send(socket, response.c_str(), response.length(), 0);
+}
+
+// void	Server::respond_with_html(int client_fd, const std::string& path)
+// {
+// 	std::string html_content = render_html(path); //need to add exceptions
+
+// 	std::stringstream ss;
+// 	ss << html_content.length();
+
+// 	std::string response = "HTTP/1.1 200 OK\r\n"
+// 						"Content-Type: text/html\r\n"
+// 						"Content-Length: " + ss.str() + "\r\n"
+// 						"\r\n" + html_content;
+
+// 	send(client_fd, response.c_str(), response.length(), 0);
+// 	std::cout << "RESPONSE: " << response << std::endl;
+// };
+
+
 
 void    Server::setup_server()
 {
@@ -178,27 +199,35 @@ void Server::run()
 				}
 				else if (valread > 0)
 				{
-					Request	request;
+					Request	request(configs[0]);
 					request.parseRequest(buffer);
 
-					std::cout << "------ DEBUG STATEMENT ------" << std::endl;
-					std::cout << "METHOD: " << request.getMethod() << std::endl;
-					std::cout << "URI: " << request.getUri() << std::endl;
-					std::cout << "HEADERS: " << request.getHeaders() << std::endl;
-                    std::cout << "Body: " << request.getBody() << std::endl;
-					std::cout << "-----------------------------" << std::endl;
-
-
-					if (request.getMethod() == "GET" && request.getUri() == "/")
+					if (request.isValid() != 0)
 					{
-						respond_with_html(i, "./static/index.html");
+						if (request.isValid() == 1 || request.isValid() == 3)
+						{
+							// 400 Bad Request
+							respond_with_html(i, "./static/bad_request.html", 400, "Bad Request");
+							Logger::logMsg(ERROR, "Bad Request %d - code", 400);
+						}
+						if (request.isValid() == 2)
+						{
+							// 405 Method Not Allowed
+							respond_with_html(i, "./static/method_not_allowed.html", 405, "Method Not Allowed");
+							Logger::logMsg(ERROR, "Method Not Allowed %d - code", 405);
+						}
 					}
-					else if (request.getMethod() == "GET" && request.getUri() == "/home")
-						respond_with_html(i, "./static/home.html");
-					else if (strncmp(buffer, "GET ", 4) == 0)
+					else
 					{
-						respond_with_html(i, "./static/not_found.html");
-						Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
+						if (request.getMethod() == "GET" && request.getUri() == "/")
+							respond_with_html(i, "./static/index.html", 200, "OK");
+						else if (request.getMethod() == "GET" && request.getUri() == "/home")
+							respond_with_html(i, "./static/home.html", 200, "OK");
+						else if (strncmp(buffer, "GET ", 4) == 0)
+						{
+							respond_with_html(i, "./static/not_found.html", 404, "Not Found");
+							Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
+						}
 					}
 				}
 			}   
