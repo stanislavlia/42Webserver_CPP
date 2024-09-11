@@ -47,7 +47,7 @@ void	Server::_setup_socketaddress()
 	_sock_address->sin_family = AF_INET;
 	//_sock_address->sin_addr.s_addr = host;
 	_sock_address->sin_port = htons(_port);
-    inet_pton(AF_INET, _host, &_sock_address->sin_addr);
+    inet_pton(AF_INET, _host.c_str(), &_sock_address->sin_addr);
 };
 
 void    Server::_bind_socket()
@@ -166,7 +166,7 @@ void    Server::setup_server()
 
 	_bind_socket();
 	_listen_socket();
-	Logger::logMsg(DEBUG, "Listening on http://%s:%d", _host, _port);
+	Logger::logMsg(DEBUG, "Listening on http://%s:%d", _host.c_str(), _port);
 
 };
 

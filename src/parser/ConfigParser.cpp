@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 15:39:47 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 16:00:36 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,6 @@ void	parseHost(std::istringstream& iss, ServerParam& server)
 	std::getline(iss, host, ';');
 	host = host.substr(1);
 	server.setHost(host.c_str());
-	std::cout << "Host: " << host << std::endl;
 }
 
 // MAIN FUNCTION

@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:17:08 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 15:45:24 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/11 15:58:54 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ ServerParam::ServerParam(void)
 {
 	this->port = 0;
 	this->clientMaxBodySize = 0;
-	this->host = "";
+	this->host = "0.0.0.0";
 	this->serverName = "";
 	this->root = "";
 	this->index = "";
