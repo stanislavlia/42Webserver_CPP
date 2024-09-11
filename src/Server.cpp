@@ -164,41 +164,6 @@ void Server::run()
 			}
 		}
 
-<<<<<<< HEAD
-        for (int i = 0; i <= max_fd; i++)
-        {
-            if (FD_ISSET(i, &current_fds) && i != _server_fd) 
-            {
-                valread = read(i, buffer, sizeof(buffer));
-                if (valread == 0)
-                {
-                    Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
-                    close(i);
-                    FD_CLR(i, &read_fds);
-                }
-                else if (valread > 0)
-                {
-                    if (strncmp(buffer, "GET / ", 6) == 0)
-                    {
-                        respond_with_html(i, "./static/index.html");
-                        Logger::logMsg(INFO, "%s / 200 OK; socket_fd=%d", "GET", i);
-
-                    }
-					else if (strncmp(buffer, "GET /home", 9) == 0)
-                    {
-						respond_with_html(i, "./static/home.html");
-                        Logger::logMsg(INFO, "%s /home 200 OK; socket_fd=%d", "GET", i);
-                    }
-                    else if (strncmp(buffer, "GET ", 4) == 0)
-                    {
-                        respond_with_html(i, "./static/not_found.html");
-                        Logger::logMsg(ERROR, "%s No page FOUND %d - code; socket_fd=%d", "GET", 404, i);
-                    }
-                }
-            }   
-        }
-    }
-=======
 		for (int i = 0; i <= max_fd; i++)
 		{
 			if (FD_ISSET(i, &current_fds) && i != _server_fd) 
@@ -240,5 +205,4 @@ void Server::run()
 			}   
 		}
 	}
->>>>>>> 9cfe18d6ba5f1a4072a6cb21b2fc1206fa84c081
 };
