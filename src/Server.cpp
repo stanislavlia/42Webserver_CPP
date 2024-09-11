@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Request.hpp"
 #include "sstream"
 
 
@@ -85,32 +86,32 @@ int    Server::_accept_connection()
 
 std::string Server::render_html(const std::string& path)
 {
-    std::ifstream file(path.c_str());
+	std::ifstream file(path.c_str());
 
-    if (!file.is_open())
-    {
-        Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
-        return render_html("./static/not_found.html");
-    };
+	if (!file.is_open())
+	{
+		Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
+		return render_html("./static/not_found.html");
+	};
 
-    std::stringstream  stream_buffer;
-    stream_buffer << file.rdbuf();
-    return stream_buffer.str();
+	std::stringstream  stream_buffer;
+	stream_buffer << file.rdbuf();
+	return stream_buffer.str();
 };  
 
 void	Server::respond_with_html(int client_fd, const std::string& path)
 {
 	std::string html_content = render_html(path); //need to add exceptions
 
-    std::stringstream ss;
-    ss << html_content.length();
+	std::stringstream ss;
+	ss << html_content.length();
 
-    std::string response = "HTTP/1.1 200 OK\r\n"
-                        "Content-Type: text/html\r\n"
-                        "Content-Length: " + ss.str() + "\r\n"
-                        "\r\n" + html_content;
+	std::string response = "HTTP/1.1 200 OK\r\n"
+						"Content-Type: text/html\r\n"
+						"Content-Length: " + ss.str() + "\r\n"
+						"\r\n" + html_content;
 
-    send(client_fd, response.c_str(), response.length(), 0); 
+	send(client_fd, response.c_str(), response.length(), 0); 
 };
 
 void    Server::setup_server()
@@ -134,35 +135,36 @@ void    Server::setup_server()
 void Server::run()
 {
 
-    int activity;
-    int max_fd = _server_fd;
-    int new_socket;
-    int valread;
+	int activity;
+	int max_fd = _server_fd;
+	int new_socket;
+	int valread;
 
-    bool is_running = true;
-    char buffer[BUFF_SIZE] = {0};
+	bool is_running = true;
+	char buffer[BUFF_SIZE] = {0};
 
-    while (is_running)
-    {
-        fd_set current_fds = read_fds;
+	while (is_running)
+	{
+		fd_set current_fds = read_fds;
 
-        activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-        if (activity < 0)
-            continue;
+		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+		if (activity < 0)
+			continue;
 
-        if (FD_ISSET(_server_fd, &current_fds))
-        {
-            new_socket = _accept_connection();
-            if (new_socket >= 0)
-            {   
-                FD_SET(new_socket, &read_fds);
-                if (new_socket > max_fd)
-                    max_fd = new_socket;
-                
-                Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-            }
-        }
+		if (FD_ISSET(_server_fd, &current_fds))
+		{
+			new_socket = _accept_connection();
+			if (new_socket >= 0)
+			{   
+				FD_SET(new_socket, &read_fds);
+				if (new_socket > max_fd)
+					max_fd = new_socket;
+				
+				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
+			}
+		}
 
+<<<<<<< HEAD
         for (int i = 0; i <= max_fd; i++)
         {
             if (FD_ISSET(i, &current_fds) && i != _server_fd) 
@@ -196,4 +198,47 @@ void Server::run()
             }   
         }
     }
+=======
+		for (int i = 0; i <= max_fd; i++)
+		{
+			if (FD_ISSET(i, &current_fds) && i != _server_fd) 
+			{
+				memset(buffer, 0, sizeof(buffer));
+				// std::cout << "BUFFER: " << buffer << std::endl;
+				valread = read(i, buffer, sizeof(buffer));
+				if (valread == 0)
+				{
+					Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
+					close(i);
+					FD_CLR(i, &read_fds);
+				}
+				else if (valread > 0)
+				{
+					Request	request;
+					request.parseRequest(buffer);
+
+					std::cout << "------ DEBUG STATEMENT ------" << std::endl;
+					std::cout << "METHOD: " << request.getMethod() << std::endl;
+					std::cout << "URI: " << request.getUri() << std::endl;
+					std::cout << "HEADERS: " << request.getHeaders() << std::endl;
+                    std::cout << "Body: " << request.getBody() << std::endl;
+					std::cout << "-----------------------------" << std::endl;
+
+
+					if (request.getMethod() == "GET" && request.getUri() == "/")
+					{
+						respond_with_html(i, "./static/index.html");
+					}
+					else if (request.getMethod() == "GET" && request.getUri() == "/home")
+						respond_with_html(i, "./static/home.html");
+					else if (strncmp(buffer, "GET ", 4) == 0)
+					{
+						respond_with_html(i, "./static/not_found.html");
+						Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
+					}
+				}
+			}   
+		}
+	}
+>>>>>>> 9cfe18d6ba5f1a4072a6cb21b2fc1206fa84c081
 };

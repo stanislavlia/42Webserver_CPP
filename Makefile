@@ -9,9 +9,9 @@ INC			:= -I./include
 CXX			:= c++
 CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98
 
-SRCS		:= $(wildcard $(SRCDIR)/*.cpp)
-OBJS		:= $(patsubst %.cpp,$(OBJDIR)/%.o,$(SRCS))
-DEPS		:= $(patsubst %.cpp,$(OBJDIR)/%.d,$(SRCS))
+SRCS		:= $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/parser/*.cpp) $(wildcard $(SRCDIR)/request/*.cpp) $(wildcard $(SRCDIR)/utils/*.cpp)
+OBJS 		:= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/$(SRCDIR)/%.o,$(SRCS))
+DEPS 		:= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/$(SRCDIR)/%.d,$(SRCS))
 
 MKDIR		:= mkdir -p
 RM			:= rm -rf
