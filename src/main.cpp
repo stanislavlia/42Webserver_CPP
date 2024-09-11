@@ -56,8 +56,17 @@ int main(int ac, char **av)
     // Run first server
     struct sockaddr_in address;
 
-    Server server(&address, servers[0].getPort());
+    Server server(&address, servers[0].getPort(), HOST);
+
+    try
+    {
     server.setup_server();
+    }
+    catch (const std::exception& e)
+    {
+        Logger::logMsg(ERROR, "Failed to start: %s", e.what());
+        return 1;
+    }
     server.run();
 
     return 0;

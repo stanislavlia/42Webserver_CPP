@@ -48,7 +48,7 @@ void Logger::logMsg(LogPriority prio,  const char* msg, ...)
     const char* color;
 
     color = prior_to_color[prio];
-    std::cout << color << getTimeStamp() << prio_str[prio];
+    std::cout << color << getTimeStamp() << "- " << prio_str[prio];
 
     vprintf(msg, args);
 
