@@ -88,7 +88,7 @@ std::string Server::render_html(const std::string& path)
     if (!file.is_open())
     {
         Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
-        return render_html("./static/not_found.html");
+        return render_html(configs[0].getRoot() + "/static/not_found.html");
     }
 
     std::stringstream stream_buffer;
@@ -172,7 +172,6 @@ void    Server::setup_server()
 
 void Server::run()
 {
-
 	int activity;
 	int max_fd = _server_fd;
 	int new_socket;
@@ -237,12 +236,16 @@ void Server::run()
 					else
 					{
 						if (request.getMethod() == "GET" && request.getUri() == "/")
-							respond_with_html(i, "./static/index.html", 200, "OK");
+						{
+							respond_with_html(i, configs[0].getRoot() + "/static/index.html", 200, "OK");
+						}
 						else if (request.getMethod() == "GET" && request.getUri() == "/home")
-							respond_with_html(i, "./static/home.html", 200, "OK");
+						{;
+							respond_with_html(i, configs[0].getRoot() + "/static/home.html" , 200, "OK");
+						}
 						else if (strncmp(buffer, "GET ", 4) == 0)
 						{
-							respond_with_html(i, "./static/not_found.html", 404, "Not Found");
+							respond_with_html(i, configs[0].getRoot() + "static/not_found.html", 404, "Not Found");
 							Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
 						}
 
