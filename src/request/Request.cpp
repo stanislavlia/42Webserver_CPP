@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 14:28:41 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/20 11:24:42 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,6 @@ void	Request::validateRequest()
     }
     else if (_uri.empty())
     {
-        std::cout << "URI IS EMPTY" << std::endl;
         _valid = 3;
         return ;
     }
@@ -100,7 +99,6 @@ void	Request::validateRequest()
             }
         }
     }
-    std::cout << "VALID REQUEST" << std::endl;
     _valid = 0;
 }
 
