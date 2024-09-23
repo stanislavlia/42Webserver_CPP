@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 16:00:36 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/23 10:37:45 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,12 +53,13 @@ void    parseServerName(std::istringstream& iss, ServerParam& server)
 	server.setServerName(server_name);
 }
 
-void    parseIndex(std::istringstream& iss, ServerParam& server)
+void parseIndex(std::istringstream& iss, ServerParam& server)
 {
-	std::string index;
-	std::getline(iss, index, ';');
-	iss >> index;
-	server.setIndex(index);
+    std::string index;
+    std::getline(iss, index, ';');
+    index.erase(0, index.find_first_not_of(' ')); // Remove leading spaces
+    std::cout << "index:" << index << std::endl;
+    server.setIndex(index);
 }
 
 
