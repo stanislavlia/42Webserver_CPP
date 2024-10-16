@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/23 10:37:45 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 04:00:45 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ void parseIndex(std::istringstream& iss, ServerParam& server)
     std::string index;
     std::getline(iss, index, ';');
     index.erase(0, index.find_first_not_of(' ')); // Remove leading spaces
-    std::cout << "index:" << index << std::endl;
     server.setIndex(index);
 }
 
