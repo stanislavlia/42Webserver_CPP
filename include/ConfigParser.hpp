@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 15:27:17 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 03:34:50 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include "Webserver.hpp"
 #include "ServerParam.hpp"
+#include "Location.hpp"
 
 enum FunctionType {
 	LISTEN,

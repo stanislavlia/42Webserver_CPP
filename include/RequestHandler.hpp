@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:58:30 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/23 13:47:18 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/24 08:24:19 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,9 @@ class RequestHandler
 		Request				_request;
 		ServerParam&	_config;
 		int					_socket;
-		
+
+		void		_handlePostRequest(int client_fd, const std::string& rootDir, const std::string& uri);
+
 
 		void		_handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri);
 		void		_handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri);

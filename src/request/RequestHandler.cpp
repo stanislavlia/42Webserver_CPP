@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/23 13:46:36 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/24 14:04:26 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,19 +44,32 @@ RequestHandler::~RequestHandler()
 
 // END CANONICAL FORM
 
+void	DefaultErrorPage(int client_fd, int status_code)
+{
+	std::stringstream status_code_ss;
+	status_code_ss << status_code;
+
+	std::string response = "HTTP/1.1 " + status_code_ss.str() + " ""\r\n"
+						   "Content-Type: text/html\r\n"
+						   "Content-Length: 0\r\n"
+						   "\r\n";
+
+	send(client_fd, response.c_str(), response.length(), 0);
+}
+
 std::string	RequestHandler::_render_html(const std::string& path)
 {
-    std::ifstream file(path.c_str());
+	std::ifstream file(path.c_str());
 
-    if (!file.is_open())
-    {
-        Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
-        return _render_html("www/error/not_found.html");
-    }
+	if (!file.is_open())
+	{
+		Logger::logMsg(ERROR, "Failed to open HTML file: %s", path.c_str());
+		return _render_html("www/error/not_found.html");
+	}
 
-    std::stringstream stream_buffer;
-    stream_buffer << file.rdbuf();
-    return stream_buffer.str();
+	std::stringstream stream_buffer;
+	stream_buffer << file.rdbuf();
+	return stream_buffer.str();
 }
 
 void RequestHandler::_respond_with_error(int socket, int status_code, const std::string& status_message)
@@ -65,71 +78,84 @@ void RequestHandler::_respond_with_error(int socket, int status_code, const std:
 
 	std::string html_content = _render_html(path);
 	std::stringstream ss;
-    ss << html_content.length();
+	ss << html_content.length();
 
-    std::stringstream status_code_ss;
-    status_code_ss << status_code;
+	std::stringstream status_code_ss;
+	status_code_ss << status_code;
 
-    std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
-                           "Content-Type: text/html\r\n"
-                           "Content-Length: " + ss.str() + "\r\n"
-                           "\r\n" + html_content;
+	std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+						   "Content-Type: text/html\r\n"
+						   "Content-Length: " + ss.str() + "\r\n"
+						   "\r\n" + html_content;
 
-    send(socket, response.c_str(), response.length(), 0);
+	send(socket, response.c_str(), response.length(), 0);
 }
 
 
 void	RequestHandler::_respond_with_html(int socket, const std::string& path, int status_code, const std::string& status_message)
 {
-    std::string html_content = _render_html(path); //need to add exceptions
+	std::string html_content = _render_html(path); //need to add exceptions
 
-    std::stringstream ss;
-    ss << html_content.length();
+	std::stringstream ss;
+	ss << html_content.length();
 
-    std::stringstream status_code_ss;
-    status_code_ss << status_code;
+	std::stringstream status_code_ss;
+	status_code_ss << status_code;
 
-    std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
-                           "Content-Type: text/html\r\n"
-                           "Content-Length: " + ss.str() + "\r\n"
-                           "\r\n" + html_content;
+	std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+						   "Content-Type: text/html\r\n"
+						   "Content-Length: " + ss.str() + "\r\n"
+						   "\r\n" + html_content;
 
-    send(socket, response.c_str(), response.length(), 0);
+	send(socket, response.c_str(), response.length(), 0);
 }
 
 void	RequestHandler::_handleInvalidRequest(int client_fd, int validation_code)
 {
-    if (validation_code == 1 || validation_code == 3)
-    {
-        // 400 Bad Request
-        _respond_with_error(client_fd, 400, "Bad Request");
-        Logger::logMsg(ERROR, "Bad Request %d - code", 400);
-    }
-    else if (validation_code == 2)
-    {
-        // 405 Method Not Allowed
-        _respond_with_error(client_fd, 405, "Method Not Allowed");
-        Logger::logMsg(ERROR, "Method Not Allowed %d - code", 405);
-    }
+	if (validation_code == 1 || validation_code == 3)
+	{
+		// 400 Bad Request
+		try {
+			_respond_with_error(client_fd, 400, "Bad Request");
+		}
+		catch (std::exception& e)
+		{
+			DefaultErrorPage(client_fd, 400);
+		}
+		Logger::logMsg(ERROR, "Bad Request %d - code", 400);
+	}
+	else if (validation_code == 2)
+	{
+		// 405 Method Not Allowed
+		try
+		{
+			_respond_with_error(client_fd, 405, "Method Not Allowed");
+		}
+		catch (std::exception& e)
+		{
+			DefaultErrorPage(client_fd, 405);
+		}
+		Logger::logMsg(ERROR, "Method Not Allowed %d - code", 405);
+	}
 }
 
 std::string	_generateDirectoryListing(const std::string& path, const std::string& uri)
 {
 	std::cout << "IN GENERATE DIRECTORY LISTING" << std::endl;
 	std::stringstream html;
-    html << "<html><head><title>Directory Listing</title></head><body>";
-    html << "<h1>Directory Listing for " << path << "</h1>";
-    html << "<ul>";
+	html << "<html><head><title>Directory Listing</title></head><body>";
+	html << "<h1>Directory Listing for " << path << "</h1>";
+	html << "<ul>";
 
-    DIR* dir = opendir(path.c_str());
-    if (dir)
-    {
-        struct dirent* entry;
+	DIR* dir = opendir(path.c_str());
+	if (dir)
+	{
+		struct dirent* entry;
 		
-        while ((entry = readdir(dir)) != NULL)
-        {
-            if (entry->d_name[0] != '.') // Skip hidden files
-            {
+		while ((entry = readdir(dir)) != NULL)
+		{
+			if (entry->d_name[0] != '.') // Skip hidden files
+			{
 				if (entry->d_type == DT_DIR)
 				{
 					std::string file_path = uri + entry->d_name;
@@ -138,118 +164,142 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 				else
 				{
 					std::string file_path = uri + "/" + entry->d_name;
-                	html << "<li><a href=\"" << file_path << "\">" << entry->d_name << "</a></li>";
+					html << "<li><a href=\"" << file_path << "\">" << entry->d_name << "</a></li>";
 				}
-            }
-        }
-        closedir(dir);
-    }
+			}
+		}
+		closedir(dir);
+	}
 
-    html << "</ul></body></html>";
-    return (html.str());
+	html << "</ul></body></html>";
+	return (html.str());
 }
 
 void	RequestHandler::_serveHtmlContent(int client_fd, const std::string& html_content, int status_code, const std::string& status_message)
 {
-    std::cout << "IN SERVE HTML CONTENT" << std::endl;
+	std::cout << "IN SERVE HTML CONTENT" << std::endl;
 
-    std::stringstream ss;
-    ss << html_content.length();
+	std::stringstream ss;
+	ss << html_content.length();
 
-    std::stringstream status_code_ss;
-    status_code_ss << status_code;
+	std::stringstream status_code_ss;
+	status_code_ss << status_code;
 
-    std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
-                           "Content-Type: text/html\r\n"
-                           "Content-Length: " + ss.str() + "\r\n"
-                           "\r\n" + html_content;
+	std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+						   "Content-Type: text/html\r\n"
+						   "Content-Length: " + ss.str() + "\r\n"
+						   "\r\n" + html_content;
 
-    send(client_fd, response.c_str(), response.length(), 0);
+	send(client_fd, response.c_str(), response.length(), 0);
 }
 
 void	RequestHandler::_handleDirectoryListing(int client_fd, const std::string& path, const std::string& uri)
 {
-    std::string html_content = _generateDirectoryListing(path, uri);
+	std::string html_content = _generateDirectoryListing(path, uri);
 	_serveHtmlContent(client_fd, html_content, 200, "OK");
 }
 
-void	DefaultErrorPage(int client_fd, int status_code)
-{
-	std::stringstream status_code_ss;
-    status_code_ss << status_code;
-
-    std::string response = "HTTP/1.1 " + status_code_ss.str() + " ""\r\n"
-                           "Content-Type: text/html\r\n"
-                           "Content-Length: 0\r\n"
-                           "\r\n";
-
-    send(client_fd, response.c_str(), response.length(), 0);
-}
 
 void	RequestHandler::_handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri)
 {
-    if (_config.getIndex().empty() && _config.getAutoIndex() == 1)
-    {
-        _handleDirectoryListing(client_fd, rootDir, uri);
-    }
-    else if (_config.getIndex().empty() && _config.getAutoIndex() == 0)
-    {
-        try
-        {
-        	_respond_with_error(client_fd, 403, "Forbidden");
-        }
-        catch (std::exception& e)
-        {
-            DefaultErrorPage(client_fd, 403);
-        }
-    }
-    else
-    {
-        _respond_with_html(client_fd, rootDir + _config.getIndex(), 200, "OK");
-    }
+	if (_config.getIndex().empty() && _config.getAutoIndex() == 1)
+	{
+		_handleDirectoryListing(client_fd, rootDir, uri);
+	}
+	else if (_config.getIndex().empty() && _config.getAutoIndex() == 0)
+	{
+		try
+		{
+			_respond_with_error(client_fd, 403, "Forbidden");
+		}
+		catch (std::exception& e)
+		{
+			DefaultErrorPage(client_fd, 403);
+		}
+	}
+	else
+	{
+		_respond_with_html(client_fd, rootDir + _config.getIndex(), 200, "OK");
+	}
 }
 
 void	RequestHandler::_handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri)
 {
-    if (uri == "/home")
-    {
-        _respond_with_html(client_fd, rootDir + "/static/home.html", 200, "OK");
-    }
+	if (uri == "/home")
+	{
+		_respond_with_html(client_fd, rootDir + "/static/home.html", 200, "OK");
+	}
 }
 
 void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri)
 {
-    struct stat path_stat;
-    if (stat(full_path.c_str(), &path_stat) == 0)
-    {
-        std::cout << "PATH STAT: " << path_stat.st_mode << std::endl;
-        if (S_ISDIR(path_stat.st_mode))
-        {
-            if (_config.getAutoIndex() == 1)
-            {
-                _handleDirectoryListing(client_fd, full_path, uri);
-            }
-            else
-            {
-               _respond_with_error(client_fd, 403, "Forbidden");
-            }
-        }
-        else if (S_ISREG(path_stat.st_mode))
-        {
-            _respond_with_html(client_fd, full_path.c_str(), 200, "OK");
-        }
-        else
-        {
-            _respond_with_error(client_fd, 404, "Not Found");
-            Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
-        }
-    }
-    else
-    {
-        _respond_with_html(client_fd, _config.getRoot() + "/error/not_found.html", 404, "Not Found");
-        Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
-    }
+	struct stat path_stat;
+	if (stat(full_path.c_str(), &path_stat) == 0)
+	{
+		std::cout << "PATH STAT: " << path_stat.st_mode << std::endl;
+		if (S_ISDIR(path_stat.st_mode))
+		{
+			if (_config.getAutoIndex() == 1)
+			{
+				_handleDirectoryListing(client_fd, full_path, uri);
+			}
+			else
+			{
+				try
+				{
+					_respond_with_error(client_fd, 403, "Forbidden");
+				}
+				catch (std::exception& e)
+				{
+					DefaultErrorPage(client_fd, 403);
+				}
+			}
+		}
+		else if (S_ISREG(path_stat.st_mode))
+		{
+			if (access(full_path.c_str(), R_OK) == 0)
+				_respond_with_html(client_fd, full_path.c_str(), 200, "OK");
+			else
+			{
+				try
+				{
+					_respond_with_error(client_fd, 403, "Forbidden");
+				}
+				catch (std::exception& e)
+				{
+					DefaultErrorPage(client_fd, 403);
+				}
+			}
+		}
+		else
+		{
+			try
+			{
+				_respond_with_error(client_fd, 404, "Not Found");
+			}
+			catch (std::exception& e)
+			{
+				DefaultErrorPage(client_fd, 404);
+			}
+			Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
+		}
+	}
+	else
+	{
+		try {
+			_respond_with_error(client_fd, 404, "Not Found");
+		}
+		catch (std::exception& e)
+		{
+			DefaultErrorPage(client_fd, 404);
+		}
+		Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
+	}
 }
+
+// void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDir, const std::string& uri)
+// {
+// }
 
 void	RequestHandler::handleRequest()
 {
@@ -264,14 +314,32 @@ void	RequestHandler::handleRequest()
 
 		std::cout << "FULL PATH: " << full_path << std::endl;
 
-		if (_request.getMethod() == "GET" && _request.getUri() == "/")
+		std::cout << "METHOD: " << _request.getMethod() << std::endl;
+
+		if (_request.getMethod() == "POST")
 		{
-		    _handleRootDirectoryRequest(_socket, rootDir, _request.getUri());
+			std::cout << "Handle Request >POST< : " << _request.getUri() << std::endl;
+			std::cout << "BODY : " << _request.getBody() << std::endl;
+
+			std::map<std::string, std::string> headers = _request.getHeaders();
+			
+			for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+			{
+				std::cout << "HEADER: " << it->first << " : " << it->second << std::endl;
+			}
+			// _handlePostRequest(_socket, rootDir, _request.getUri());
+			// exit(0);
+		}
+		else if (_request.getMethod() == "GET" && _request.getUri() == "/")
+		{
+			std::cout << "Handle Request >Root< : " << _request.getUri() << std::endl;
+			_handleRootDirectoryRequest(_socket, rootDir, _request.getUri());
 		}
 		else
 		{
-		    _handleSpecificUriRequest(_socket, rootDir, _request.getUri());
-		    _handleFileOrDirectoryRequest(_socket, full_path, _request.getUri());
+			std::cout << "Handle Request >Request< : " << _request.getUri() << std::endl;
+			_handleSpecificUriRequest(_socket, rootDir, _request.getUri());
+			_handleFileOrDirectoryRequest(_socket, full_path, _request.getUri());
 		}
 	}
 }

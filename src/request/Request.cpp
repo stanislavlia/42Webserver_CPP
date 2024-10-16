@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/20 11:24:42 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 03:50:18 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 // CANONICAL FORM
 
 Request::Request(const ServerParam& config)
-: _config(config), _method(""), _uri(""), _headers(""), _body(""), _valid(false)
+: _config(config), _method(""), _uri(""), _headers(), _body(""), _valid(false)
 {
 }
 
@@ -55,9 +55,9 @@ std::string	Request::getUri() const
 	return _uri;
 }
 
-std::string	Request::getHeaders() const
+std::map<std::string, std::string>	Request::getHeaders() const
 {
-	return _headers;
+    return _headers;
 }
 
 std::string	Request::getBody() const
@@ -118,7 +118,17 @@ std::vector<std::string> split(const std::string& str, const std::string& delimi
 
 void	Request::parseHeaders(const std::string& headers)
 {
-	_headers = headers;
+    // std::cout << "In parseHeaders" << std::endl;
+    std::vector<std::string> headersList = split(headers, "\n");
+    for (size_t i = 0; i < headersList.size(); i++)
+    {
+        // std::cout << "headersList.at(i): " << headersList.at(i) << std::endl;
+        std::vector<std::string> header = split(headersList.at(i), ": ");
+        if (header.size() == 2)
+        {
+            _headers[header.at(0)] = header.at(1);
+        }
+    }
 }
 
 void	Request::parseBody(const std::string& body)
@@ -127,7 +137,7 @@ void	Request::parseBody(const std::string& body)
 }
 
 
-void Request::parseRequest(const std::string& rawRequest)
+void    Request::parseRequest(const std::string& rawRequest)
 {
     std::istringstream requestStream(rawRequest);
     std::string line;
@@ -150,11 +160,14 @@ void Request::parseRequest(const std::string& rawRequest)
 
     // Parse body
     std::string bodyStr;
-    while (std::getline(requestStream, line))
-	{
-        bodyStr += line + "\n";
+    if (_method == "POST")
+    {
+        while (std::getline(requestStream, line))
+	    {
+            bodyStr += line + "\n";
+        }
+        parseBody(bodyStr);
     }
-    parseBody(bodyStr);
     validateRequest();
 }
 

@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/11 15:04:48 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/09/24 09:57:46 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class	Request
 
 		std::string _method;
 		std::string _uri;
-		std::string _headers;
+		std::map <std::string, std::string> _headers;
 		std::string _body;
 		int			_valid;
 
@@ -42,7 +42,7 @@ class	Request
 
 		std::string	getMethod() const;
 		std::string	getUri() const;
-		std::string	getHeaders() const;
+		std::map<std::string, std::string>	getHeaders() const;
 		std::string	getBody() const;
 		int			isValid() const;
 }	;
