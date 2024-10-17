@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 04:00:45 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 08:26:11 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,38 +53,84 @@ void    parseServerName(std::istringstream& iss, ServerParam& server)
 	server.setServerName(server_name);
 }
 
-void parseIndex(std::istringstream& iss, ServerParam& server)
+void parseIndex(std::istringstream& iss, Location& location)
 {
-    std::string index;
-    std::getline(iss, index, ';');
-    index.erase(0, index.find_first_not_of(' ')); // Remove leading spaces
-    server.setIndex(index);
+	std::string index;
+	std::getline(iss, index, ';');
+	index.erase(0, index.find_first_not_of(' ')); // Remove leading spaces
+	location.setIndex(index);
 }
 
+// void    parseIndex(std::istringstream& iss, ServerParam& server)
+// {
+//     std::string index;
+//     std::getline(iss, index, ';');
+//     index.erase(0, index.find_first_not_of(' ')); // Remove leading spaces
+//     server.setIndex(index);
+// }
 
-void    parseAutoIndex(std::istringstream& iss, ServerParam& server)
+
+// void    parseAutoIndex(std::istringstream& iss, ServerParam& server)
+// {
+// 	std::string line;
+// 	std::getline(iss, line, ';');
+// 	line = line.substr(1);
+
+// 	if (line == "on")
+// 		server.setAutoIndex(true);
+// 	else if (line == "off")
+// 		server.setAutoIndex(false);
+// 	else
+// 		server.setAutoIndex(false);
+// }
+
+void	parseAutoIndex(std::istringstream& iss, Location& location)
 {
 	std::string line;
 	std::getline(iss, line, ';');
 	line = line.substr(1);
 
+	std::cout << "line: " << line << std::endl;
 	if (line == "on")
-		server.setAutoIndex(true);
+		location.setAutoIndex(true);
 	else if (line == "off")
-		server.setAutoIndex(false);
+		location.setAutoIndex(false);
 	else
-		server.setAutoIndex(false);
+		location.setAutoIndex(false);
 }
 
-void    parseRoot(std::istringstream& iss, ServerParam& server)
+// void    parseRoot(std::istringstream& iss, ServerParam& server)
+// {
+// 	std::string root;
+// 	std::getline(iss, root, ';');
+// 	root = root.substr(1);
+// 	server.setRoot(root);
+// }
+
+void	parseRoot(std::istringstream& iss, Location& location)
 {
 	std::string root;
 	std::getline(iss, root, ';');
 	root = root.substr(1);
-	server.setRoot(root);
+	location.setRoot(root);
 }
 
-void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
+// void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
+// {
+// 	std::string methods;
+// 	std::getline(iss, methods, ';');
+// 	methods = methods.substr(1);
+// 	std::vector<std::string> allowed_methods;
+// 	std::string method;
+// 	std::istringstream iss_methods(methods);
+// 	while (std::getline(iss_methods, method, ' '))
+// 	{
+// 		allowed_methods.push_back(method);
+// 	}
+// 	server.setAllowedMethods(allowed_methods);
+// }
+
+void	parseAllowedMethods(std::istringstream& iss, Location& location)
 {
 	std::string methods;
 	std::getline(iss, methods, ';');
@@ -96,31 +142,55 @@ void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
 	{
 		allowed_methods.push_back(method);
 	}
-	server.setAllowedMethods(allowed_methods);
+	location.setAllowedMethods(allowed_methods);
 }
 
-void parseErrorPage(std::istringstream& iss, ServerParam& server)
+// void parseErrorPage(std::istringstream& iss, ServerParam& server)
+// {
+//     std::string error_code_str;
+//     std::string error_path;
+
+//     // Read the error code and error path
+//     iss >> error_code_str;
+//     std::getline(iss, error_path, ';');
+
+//     // Remove leading whitespace from error_path
+//     error_path = error_path.substr(1);
+
+//     int error_code = std::atoi(error_code_str.c_str());
+
+//     server.setErrorPage(error_code, error_path);
+// }
+
+void	parseErrorPage(std::istringstream& iss, Location& location)
 {
-    std::string error_code_str;
-    std::string error_path;
+	std::string error_code_str;
+	std::string error_path;
 
-    // Read the error code and error path
-    iss >> error_code_str;
-    std::getline(iss, error_path, ';');
+	// Read the error code and error path
+	iss >> error_code_str;
+	std::getline(iss, error_path, ';');
 
-    // Remove leading whitespace from error_path
-    error_path = error_path.substr(1);
+	// Remove leading whitespace from error_path
+	error_path = error_path.substr(1);
 
-    int error_code = std::atoi(error_code_str.c_str());
+	int error_code = std::atoi(error_code_str.c_str());
 
-    server.setErrorPage(error_code, error_path);
+	location.setErrorPage(error_code, error_path);
 }
 
-void	parseClientMaxBodySize(std::istringstream& iss, ServerParam& server)
+// void	parseClientMaxBodySize(std::istringstream& iss, ServerParam& server)
+// {
+// 	int clientMaxBodySize;
+// 	iss >> clientMaxBodySize;
+// 	server.setClientMaxBodySize(clientMaxBodySize);
+// }
+
+void	parseClientMaxBodySize(std::istringstream& iss, Location& location)
 {
 	int clientMaxBodySize;
 	iss >> clientMaxBodySize;
-	server.setClientMaxBodySize(clientMaxBodySize);
+	location.setClientMaxBodySize(clientMaxBodySize);
 }
 
 void	parseHost(std::istringstream& iss, ServerParam& server)
@@ -152,7 +222,7 @@ void	parseHost(std::istringstream& iss, ServerParam& server)
 
 std::vector<ServerParam>    ConfigParser::parse()
 {
-	std::vector<ServerParam> servers;
+	// std::vector<ServerParam> servers;
 	
 	std::ifstream file(_configFile.c_str());
 
@@ -162,11 +232,13 @@ std::vector<ServerParam>    ConfigParser::parse()
 	}
 	
 	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "autoindex", "root", "allowed_methods" , "server", "}"};
-	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseIndex, parseErrorPage, parseAutoIndex, parseRoot, parseAllowedMethods, parseClientMaxBodySize, parseHost};
+	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseHost};
+	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseClientMaxBodySize, parseErrorPage};
 	
 
 	std::string line;
 	ServerParam current_server;
+	Location	current_location;
 	bool in_server_block = false;
 	bool in_location_block = false;
 
@@ -194,44 +266,60 @@ std::vector<ServerParam>    ConfigParser::parse()
 						functions[1](iss, current_server);
 						break;
 					case HOST_NAME:
-						functions[8](iss, current_server);
+						functions[2](iss, current_server);
 						break;
 					case CLIENT_MAX_BODY_SIZE:
-						functions[7](iss, current_server);
+						functions_location[4](iss, current_location);
 						break;
 					case INDEX:
 						if (in_location_block)
-							functions[2](iss, current_server);
+							functions_location[0](iss, current_location);
 						break;
 					case ERROR_PAGE:
-						functions[3](iss, current_server);
+						functions_location[5](iss, current_location);
 						break;
 					case LOCATION:
+					{
 						in_location_block = true;
+						current_location = Location();
+					}
 						break;
 					case AUTOINDEX:
-						functions[4](iss, current_server);
+					{
+						if (in_location_block)
+							functions_location[1](iss, current_location);
+					}
 						break;
 					case ROOT:
-						functions[5](iss, current_server);
+					{
+						if (in_location_block)
+							functions_location[2](iss, current_location);
+					}
 						break;
 					case ALLOWED_METHODS:
-						functions[6](iss, current_server);
+					{
+						if (in_location_block)
+							functions_location[3](iss, current_location);
+					}
 						break;
 					case SERVER:
 						if (in_server_block)
 						{
-							servers.push_back(current_server);
+							_servers.push_back(current_server);
 							current_server = ServerParam();
 						}
 						in_server_block = true;
 						break;
 					case BRACKET:
 						if (in_location_block)
+						{
+							current_server.addLocation(current_location);
+							current_location = Location();
 							in_location_block = false;
+						}
 						else if (in_server_block)
 						{
-							servers.push_back(current_server);
+							_servers.push_back(current_server);
 							current_server = ServerParam();
 							in_server_block = false;
 						}
@@ -252,8 +340,8 @@ std::vector<ServerParam>    ConfigParser::parse()
 	}
 
 	if (in_server_block) {
-		servers.push_back(current_server);
+		_servers.push_back(current_server);
 	}
 
-	return servers;
+	return _servers;
 }

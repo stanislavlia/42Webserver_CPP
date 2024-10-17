@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 03:50:18 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 08:31:27 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,15 +84,15 @@ void	Request::validateRequest()
         _valid = 3;
         return ;
     }
-    else if (_config.getAllowedMethods().size() > 0)
+    else if (_config.locations[0].getAllowedMethods().size() > 0)
     {
-        for (size_t i = 0; i < _config.getAllowedMethods().size(); i++)
+        for (size_t i = 0; i < _config.locations[0].getAllowedMethods().size(); i++)
         {
-            if (_method == _config.getAllowedMethods().at(i))
+            if (_method == _config.locations[0].getAllowedMethods().at(i))
             {
                 break ;
             }
-            else if (i == _config.getAllowedMethods().size() - 1)
+            else if (i == _config.locations[0].getAllowedMethods().size() - 1)
             {
                 _valid = 2;
                 return ;
@@ -149,7 +149,6 @@ void    Request::parseRequest(const std::string& rawRequest)
         lineStream >> _method;
         lineStream >> _uri;
     }
-
     // Parse headers
     std::string headersStr;
     while (std::getline(requestStream, line) && line != "\r")

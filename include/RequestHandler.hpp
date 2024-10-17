@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:58:30 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/24 08:24:19 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 10:29:18 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,20 +25,20 @@ class RequestHandler
 {
 	private:
 		Request				_request;
-		ServerParam&	_config;
+		ServerParam&		_config;
 		int					_socket;
 
 		void		_handlePostRequest(int client_fd, const std::string& rootDir, const std::string& uri);
 
 
 		void		_handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri);
-		void		_handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri);
+		void		_handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri, const Location& location);
 		std::string	_render_html(const std::string& path);
 		void		_serveHtmlContent(int client_fd, const std::string& html_content, int status_code, const std::string& status_message);
 		void		_respond_with_html(int socket, const std::string& path, int status_code, const std::string& status_message);
-		void 		_respond_with_error(int socket, int status_code, const std::string& status_message);
-		void		_handleInvalidRequest(int socket, int error);
-		void		_handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri);
+		void 		_respond_with_error(int socket, int status_code, const std::string& status_message, const Location& location);
+		void		_handleInvalidRequest(int socket, int error, const Location& location);
+		void		_handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri, const Location& location);
 		void		_handleDirectoryListing(int client_fd, const std::string& path, const std::string& uri);
 	public:
 		RequestHandler(int socket, Request& request, ServerParam& config);

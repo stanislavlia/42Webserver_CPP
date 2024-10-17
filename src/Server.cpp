@@ -49,7 +49,7 @@ void	Server::_setup_socketaddress()
 	_sock_address->sin_family = AF_INET;
 	//_sock_address->sin_addr.s_addr = host;
 	_sock_address->sin_port = htons(_port);
-    inet_pton(AF_INET, _host.c_str(), &_sock_address->sin_addr);
+	inet_pton(AF_INET, _host.c_str(), &_sock_address->sin_addr);
 };
 
 void    Server::_bind_socket()
@@ -168,99 +168,99 @@ void    Server::setup_server()
 
 void Server::run()
 {
-    int activity;
-    int max_fd = _server_fd;
-    int new_socket;
-    int valread;
+	int activity;
+	int max_fd = _server_fd;
+	int new_socket;
+	int valread;
 
-    bool is_running = true;
-    char buffer[BUFF_SIZE] = {0};
+	bool is_running = true;
+	char buffer[BUFF_SIZE] = {0};
 
-    while (is_running)
-    {
-        fd_set current_fds = read_fds;
+	while (is_running)
+	{
+		fd_set current_fds = read_fds;
 
-        activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-        if (activity < 0)
-            continue;
+		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+		if (activity < 0)
+			continue;
 
-        if (FD_ISSET(_server_fd, &current_fds))
-        {
-            new_socket = _accept_connection();
-            if (new_socket >= 0)
-            {
-                FD_SET(new_socket, &read_fds);
-                if (new_socket > max_fd)
-                    max_fd = new_socket;
+		if (FD_ISSET(_server_fd, &current_fds))
+		{
+			new_socket = _accept_connection();
+			if (new_socket >= 0)
+			{
+				FD_SET(new_socket, &read_fds);
+				if (new_socket > max_fd)
+					max_fd = new_socket;
 
-                Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-            }
-        }
+				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
+			}
+		}
 
-        for (int i = 0; i <= max_fd; i++)
-        {
-            if (FD_ISSET(i, &current_fds) && i != _server_fd)
-            {
-                std::string request_data;
-                while (true)
-                {
-                    memset(buffer, 0, sizeof(buffer));
-                    valread = read(i, buffer, sizeof(buffer));
-                    if (valread <= 0)
-                    {
-                        if (valread == 0)
-                        {
-                            Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
-                        }
-                        else
-                        {
-                            Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
-                        }
-                        close(i);
-                        FD_CLR(i, &read_fds);
-                        break;
-                    }
-                    request_data.append(buffer, valread);
+		for (int i = 0; i <= max_fd; i++)
+		{
+			if (FD_ISSET(i, &current_fds) && i != _server_fd)
+			{
+				std::string request_data;
+				while (true)
+				{
+					memset(buffer, 0, sizeof(buffer));
+					valread = read(i, buffer, sizeof(buffer));
+					if (valread <= 0)
+					{
+						if (valread == 0)
+						{
+							Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
+						}
+						else
+						{
+							Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
+						}
+						close(i);
+						FD_CLR(i, &read_fds);
+						break;
+					}
+					request_data.append(buffer, valread);
 
-                    // Check if we have received the full request
-                    size_t header_end = request_data.find("\r\n\r\n");
-                    if (header_end != std::string::npos)
-                    {
-                        // Parse headers to find Content-Length
-                        std::string headers = request_data.substr(0, header_end);
-                        size_t content_length_pos = headers.find("Content-Length: ");
-                        if (content_length_pos != std::string::npos)
-                        {
-                            size_t content_length_end = headers.find("\r\n", content_length_pos);
-                            std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16);
-                            std::istringstream iss(content_length_str);
-                            int content_length;
-                            iss >> content_length;
-                            size_t total_length = header_end + 4 + content_length;
-                            if (request_data.size() >= total_length)
-                            {
-                                // We have received the full request
-                                Request request(configs[0]);
-                                request.parseRequest(request_data.c_str());
+					// Check if we have received the full request
+					size_t header_end = request_data.find("\r\n\r\n");
+					if (header_end != std::string::npos)
+					{
+						// Parse headers to find Content-Length
+						std::string headers = request_data.substr(0, header_end);
+						size_t content_length_pos = headers.find("Content-Length: ");
+						if (content_length_pos != std::string::npos)
+						{
+							size_t content_length_end = headers.find("\r\n", content_length_pos);
+							std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16);
+							std::istringstream iss(content_length_str);
+							int content_length;
+							iss >> content_length;
+							size_t total_length = header_end + 4 + content_length;
+							if (request_data.size() >= total_length)
+							{
+								// We have received the full request
+								Request request(configs[0]);
+								request.parseRequest(request_data.c_str());
 
-                                RequestHandler handler(i, request, configs[0]);
-                                handler.handleRequest();
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            // Handle other cases like chunked transfer encoding if needed
-                            Request request(configs[0]);
-                            request.parseRequest(request_data.c_str());
+								RequestHandler handler(i, request, configs[0]);
+								handler.handleRequest();
+								break;
+							}
+						}
+						else
+						{
+							// Handle other cases like chunked transfer encoding if needed
+							Request request(configs[0]);
+							request.parseRequest(request_data.c_str());
 
-                            RequestHandler handler(i, request, configs[0]);
-                            handler.handleRequest();
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
+							RequestHandler handler(i, request, configs[0]);
+							handler.handleRequest();
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 }
