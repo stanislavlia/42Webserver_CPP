@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:58:30 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 10:29:18 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:14:38 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,11 @@
 #include "ServerParam.hpp"
 #include "ConfigParser.hpp"
 #include "Server.hpp"
+#include "Logger.hpp"
+#include <fstream>
+#include <sstream>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #include <vector>
 #include <string>
@@ -29,8 +34,7 @@ class RequestHandler
 		int					_socket;
 
 		void		_handlePostRequest(int client_fd, const std::string& rootDir, const std::string& uri);
-
-
+		void		_handleDeleteRequest(int client_fd, const std::string& full_path, const Location& location);
 		void		_handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri);
 		void		_handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri, const Location& location);
 		std::string	_render_html(const std::string& path);
@@ -40,11 +44,13 @@ class RequestHandler
 		void		_handleInvalidRequest(int socket, int error, const Location& location);
 		void		_handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri, const Location& location);
 		void		_handleDirectoryListing(int client_fd, const std::string& path, const std::string& uri);
+		void		_DefaultErrorPage(int client_fd, int status_code);
 	public:
 		RequestHandler(int socket, Request& request, ServerParam& config);
 		RequestHandler(const RequestHandler& src);
 		RequestHandler& operator=(const RequestHandler& rhs);
 		~RequestHandler();
+
 
 		void    handleRequest();
 };

@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 08:04:45 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 10:30:51 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,29 +61,6 @@ void parseIndex(std::istringstream& iss, Location& location)
 	location.setIndex(index);
 }
 
-// void    parseIndex(std::istringstream& iss, ServerParam& server)
-// {
-//     std::string index;
-//     std::getline(iss, index, ';');
-//     index.erase(0, index.find_first_not_of(' ')); // Remove leading spaces
-//     server.setIndex(index);
-// }
-
-
-// void    parseAutoIndex(std::istringstream& iss, ServerParam& server)
-// {
-// 	std::string line;
-// 	std::getline(iss, line, ';');
-// 	line = line.substr(1);
-
-// 	if (line == "on")
-// 		server.setAutoIndex(true);
-// 	else if (line == "off")
-// 		server.setAutoIndex(false);
-// 	else
-// 		server.setAutoIndex(false);
-// }
-
 void	parseAutoIndex(std::istringstream& iss, Location& location)
 {
 	std::string line;
@@ -114,21 +91,6 @@ void	parseRoot(std::istringstream& iss, Location& location)
 	location.setRoot(root);
 }
 
-// void    parseAllowedMethods(std::istringstream& iss, ServerParam& server)
-// {
-// 	std::string methods;
-// 	std::getline(iss, methods, ';');
-// 	methods = methods.substr(1);
-// 	std::vector<std::string> allowed_methods;
-// 	std::string method;
-// 	std::istringstream iss_methods(methods);
-// 	while (std::getline(iss_methods, method, ' '))
-// 	{
-// 		allowed_methods.push_back(method);
-// 	}
-// 	server.setAllowedMethods(allowed_methods);
-// }
-
 void	parseAllowedMethods(std::istringstream& iss, Location& location)
 {
 	std::string methods;
@@ -143,23 +105,6 @@ void	parseAllowedMethods(std::istringstream& iss, Location& location)
 	}
 	location.setAllowedMethods(allowed_methods);
 }
-
-// void parseErrorPage(std::istringstream& iss, ServerParam& server)
-// {
-//     std::string error_code_str;
-//     std::string error_path;
-
-//     // Read the error code and error path
-//     iss >> error_code_str;
-//     std::getline(iss, error_path, ';');
-
-//     // Remove leading whitespace from error_path
-//     error_path = error_path.substr(1);
-
-//     int error_code = std::atoi(error_code_str.c_str());
-
-//     server.setErrorPage(error_code, error_path);
-// }
 
 void	parseErrorPage(std::istringstream& iss, Location& location)
 {
@@ -177,13 +122,6 @@ void	parseErrorPage(std::istringstream& iss, Location& location)
 
 	location.setErrorPage(error_code, error_path);
 }
-
-// void	parseClientMaxBodySize(std::istringstream& iss, ServerParam& server)
-// {
-// 	int clientMaxBodySize;
-// 	iss >> clientMaxBodySize;
-// 	server.setClientMaxBodySize(clientMaxBodySize);
-// }
 
 void	parseClientMaxBodySize(std::istringstream& iss, Location& location)
 {
