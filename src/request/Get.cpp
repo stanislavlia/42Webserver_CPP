@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get.cpp                                            :+:      :+:    :+:   */
+/*   Get.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:08:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 12:15:42 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:34:14 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 	html << "<ul>";
 
 	DIR* dir = opendir(path.c_str());
+	std::cout << "PATH: " << path << std::endl;
 	if (dir)
 	{
 		struct dirent* entry;
@@ -36,6 +37,11 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 				else
 				{
 					std::string file_path = uri + "/" + entry->d_name;
+					const std::string prefix = "www";
+					if (file_path.find(prefix) == 0)
+					{
+    					file_path = file_path.substr(prefix.length());
+					}
 					html << "<li><a href=\"" << file_path << "\">" << entry->d_name << "</a></li>";
 				}
 			}
@@ -74,14 +80,6 @@ void	RequestHandler::_handleRootDirectoryRequest(int client_fd, const std::strin
 	else
 	{
 		_respond_with_html(client_fd, rootDir + location.getIndex(), 200, "OK");
-	}
-}
-
-void	RequestHandler::_handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri)
-{
-	if (uri == "/home")
-	{
-		_respond_with_html(client_fd, rootDir + "/static/home.html", 200, "OK");
 	}
 }
 
