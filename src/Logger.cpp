@@ -11,10 +11,10 @@ Logger::~Logger() {}
 std::map<LogPriority, std::string> Logger::initPriotToStrMap() 
 {
     std::map<LogPriority, std::string> p_map;
-    p_map[DEBUG] = "[DEBUG]   ";
-    p_map[INFO] = "[INFO]    ";
-    p_map[WARNING] = "[WARNING] ";
-    p_map[ERROR] = "[ERROR]   ";
+    // p_map[DEBUG] = "[DEBUG]   ";
+    // p_map[INFO] = "[INFO]    ";
+    // p_map[WARNING] = "[WARNING] ";
+    // p_map[ERROR] = "[ERROR]   ";
     return p_map;
 }
 

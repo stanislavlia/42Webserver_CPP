@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 03:34:50 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 06:40:11 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,7 @@ class ConfigParser
 		ConfigParser &operator=(ConfigParser const &rhs);
 		~ConfigParser(void);
 		
-		
-		std::vector<ServerParam> parse(void);
+		std::vector<ServerParam>	parse(void);
 }	;
 
 #endif

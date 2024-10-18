@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:17:08 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 03:55:59 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/17 07:43:41 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ ServerParam::ServerParam(void)
 {
 	this->port = 0;
 	this->clientMaxBodySize = 0;
+	this->locations = std::vector<Location>();
 	this->host = "0.0.0.0";
 	this->serverName = "";
 	this->root = "";
@@ -38,6 +39,7 @@ ServerParam &ServerParam::operator=(ServerParam const &rhs)
 	{
 		this->port = rhs.port;
 		this->clientMaxBodySize = rhs.clientMaxBodySize;
+		this->locations = rhs.locations;
 		this->host = rhs.host;
 		this->serverName = rhs.serverName;
 		this->index = rhs.index;
@@ -121,10 +123,10 @@ std::string	ServerParam::getServerName(void) const
 	return this->serverName;
 }
 
-std::string ServerParam::getIndex(void) const
-{
-	return this->index;
-}
+// std::string ServerParam::getIndex(void) const
+// {
+// 	return this->index;
+// }
 
 std::map<int, std::string> ServerParam::getErrorPage(void) const
 {
@@ -154,4 +156,16 @@ int	ServerParam::getClientMaxBodySize(void) const
 std::string ServerParam::getHost(void) const
 {
 	return this->host;
+}
+
+std::vector<Location> ServerParam::getLocations(void) const
+{
+	return this->locations;
+}
+
+// END OF GETTERS
+
+void	ServerParam::addLocation(Location location)
+{
+	this->locations.push_back(location);
 }
