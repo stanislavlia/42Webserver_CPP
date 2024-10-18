@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 11:21:30 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 09:52:28 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ void RequestHandler::_respond_with_error(int socket, int status_code, const std:
 {
 	std::string path = location.getErrorPage().at(status_code);
 
-	std::cout << "ERROR PAGE PATH: " << path << std::endl;
 
 	std::string html_content = _render_html(path);
 	std::stringstream ss;
@@ -143,7 +142,6 @@ void	RequestHandler::_handleInvalidRequest(int client_fd, int validation_code, c
 
 std::string	_generateDirectoryListing(const std::string& path, const std::string& uri)
 {
-	std::cout << "IN GENERATE DIRECTORY LISTING" << std::endl;
 	std::stringstream html;
 	html << "<html><head><title>Directory Listing</title></head><body>";
 	html << "<h1>Directory Listing for " << path << "</h1>";
@@ -179,8 +177,6 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 
 void	RequestHandler::_serveHtmlContent(int client_fd, const std::string& html_content, int status_code, const std::string& status_message)
 {
-	std::cout << "IN SERVE HTML CONTENT" << std::endl;
-
 	std::stringstream ss;
 	ss << html_content.length();
 
@@ -238,11 +234,8 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 	struct stat path_stat;
 	if (stat(full_path.c_str(), &path_stat) == 0)
 	{
-		std::cout << "PATH STAT: " << path_stat.st_mode << std::endl;
 		if (S_ISDIR(path_stat.st_mode))
 		{
-			std::cout << "IS DIR" << std::endl;
-			std::cout << "AUTO INDEX: " << location.getAutoIndex() << std::endl;
 			if (location.getAutoIndex() == 1)
 			{
 				_handleDirectoryListing(client_fd, full_path, uri);
@@ -252,12 +245,10 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 				try
 				{
 					_respond_with_error(client_fd, 403, "Forbidden", location);
-					std::cout << "FORBIDDEN" << std::endl;
 				}
 				catch (std::exception& e)
 				{
 					DefaultErrorPage(client_fd, 403);
-					std::cout << "DEFAULT ERROR PAGE" << std::endl;
 				}
 			}
 		}
@@ -304,96 +295,91 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 	}
 }
 
-// void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDir, const std::string& uri)
-// {
-// }
+void	restore_locations_order(std::vector<Location>& locations, std::vector<std::pair<size_t, Location*> >& indexed_locations)
+{
+	for (size_t i = 0; i < locations.size(); ++i)
+	{
+		locations[i] = *indexed_locations[i].second;
+		std::cout << "location[i] root: " << locations[i].getRoot() << " Indexed locations second: " << indexed_locations[i].second->getRoot() << std::endl;
+	}
+	for (size_t i = 0; i < locations.size(); ++i)
+	{
+		std::cout << "Restored location: " << locations[i].getRoot() << std::endl;
+	}
+}
 
-// void	RequestHandler::handleRequest()
-// {
-// 	if (_request.isValid() != 0)
-// 	{
-// 		_handleInvalidRequest(_socket, _request.isValid());
-// 	}
-// 	else
-// 	{
-// 		std::string full_path = _config.locations[0].getRoot() + _request.getUri(); // for autoindex on 
-// 		std::string rootDir = _config.locations[0].getRoot();
+bool	compareLocations(const std::pair<size_t, Location>& a, const std::pair<size_t, Location>& b)
+{
+    return a.second.getRoot().length() > b.second.getRoot().length();
+}
 
-// 		std::cout << "FULL PATH: " << full_path << std::endl;
-
-// 		std::cout << "METHOD: " << _request.getMethod() << std::endl;
-
-// 		if (_request.getMethod() == "POST")
-// 		{
-// 			std::cout << "Handle Request >POST< : " << _request.getUri() << std::endl;
-// 			std::cout << "BODY : " << _request.getBody() << std::endl;
-
-// 			std::map<std::string, std::string> headers = _request.getHeaders();
-			
-// 			for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-// 			{
-// 				std::cout << "HEADER: " << it->first << " : " << it->second << std::endl;
-// 			}
-// 			// _handlePostRequest(_socket, rootDir, _request.getUri());
-// 			// exit(0);
-// 		}
-// 		else if (_request.getMethod() == "GET" && _request.getUri() == "/")
-// 		{
-// 			std::cout << "Handle Request >Root< : " << _request.getUri() << std::endl;
-// 			_handleRootDirectoryRequest(_socket, rootDir, _request.getUri(), _config.locations[0]);
-// 		}
-// 		else
-// 		{
-// 			std::cout << "Handle Request >Request< : " << _request.getUri() << std::endl;
-// 			_handleSpecificUriRequest(_socket, rootDir, _request.getUri());
-// 			_handleFileOrDirectoryRequest(_socket, full_path, _request.getUri(), _config.locations[0]);
-// 		}
-// 	}
-// }
-
-
-// Comparator function to sort locations by root length in descending order
-bool compareLocations(const Location& a, const Location& b) {
-    return a.getRoot().length() > b.getRoot().length();
+// Comparator function to sort locations by their original indices
+bool	compareOriginalIndices(const std::pair<size_t, Location>& a, const std::pair<size_t, Location>& b)
+{
+    return a.first < b.first;
 }
 
 // Function to check if a file or directory exists
-bool fileOrDirectoryExists(const std::string& path, bool& is_directory) {
+bool	fileOrDirectoryExists(const std::string& path, bool& is_directory)
+{
     struct stat info;
-    if (stat(path.c_str(), &info) != 0) {
+    if (stat(path.c_str(), &info) != 0)
+	{
         return false; // Path does not exist
     }
     is_directory = (info.st_mode & S_IFDIR) != 0;
     return true;
 }
 
-void RequestHandler::handleRequest()
+void	restoreOriginalOrder(std::vector<std::pair<size_t, Location> >& indexed_locations, std::vector<Location>& locations)
 {
-	std::string request_uri;
+    // Restore original order of locations
+    std::sort(indexed_locations.begin(), indexed_locations.end(), compareOriginalIndices);
 
-	if (_request.getUri() == "/")
+    // Update locations with the restored order
+    for (size_t i = 0; i < indexed_locations.size(); ++i)
 	{
-		std::cout << "ROOT URI" << std::endl;
-		request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();	
-	}
+        locations[i] = indexed_locations[i].second;
+        std::cout << "Restored location: " << locations[i].getRoot() << std::endl;
+    }
+}
+
+void	RequestHandler::handleRequest()
+{
+    std::string request_uri;
+    if (_request.getUri() == "/")
+	{
+        std::cout << "ROOT URI" << std::endl;
+        request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();
+    }
 	else
 	{
-		std::cout << "NOT ROOT URI" << std::endl;
-		request_uri = _request.getUri(); // Add the www prefix
-	}
+        std::cout << "NOT ROOT URI" << std::endl;
+        request_uri = "www" + _request.getUri(); // Add the www prefix
+    }
+
     std::string request_method = _request.getMethod();
     std::string matched_root;
     Location matched_location;
     bool location_found = false;
+    size_t found = 0;
 
-    std::cout << "request uri: " << request_uri << std::endl;
+    std::cout << "REQUEST URI: " << request_uri << std::endl;
+
+    // Store original indices and copies of locations
+    std::vector<std::pair<size_t, Location> > indexed_locations;
+    for (size_t i = 0; i < _config.locations.size(); ++i) {
+        indexed_locations.push_back(std::make_pair(i, _config.locations[i]));
+        std::cout << "Index location: " << indexed_locations[i].second.getRoot() << std::endl;
+    }
 
     // Sort locations by root length in descending order
-    std::sort(_config.locations.begin(), _config.locations.end(), compareLocations);
+    std::sort(indexed_locations.begin(), indexed_locations.end(), compareLocations);
 
-    for (size_t i = 0; i < _config.locations.size(); ++i)
+	// Check if the URI matches any of the locations
+    for (size_t i = 0; i < indexed_locations.size(); ++i)
     {
-        std::string location_root = _config.locations[i].getRoot();
+        const std::string& location_root = indexed_locations[i].second.getRoot();
         std::cout << "location root: " << location_root << std::endl;
         
         if (request_uri.find(location_root) == 0) // Check if the URI starts with the location root
@@ -401,25 +387,72 @@ void RequestHandler::handleRequest()
             std::string full_path = location_root + request_uri.substr(location_root.length());
             std::cout << "full path: " << full_path << std::endl;
             bool is_directory = false;
-            if (fileOrDirectoryExists(full_path, is_directory)) {
+            if (fileOrDirectoryExists(full_path, is_directory))
+			{
                 matched_root = location_root;
-                matched_location = _config.locations[i];
+                matched_location = indexed_locations[i].second;
                 location_found = true;
+                found = indexed_locations[i].first; // Store the original index
                 break;
             }
         }
     }
 
+    // Restore original order of locations
+	restoreOriginalOrder(indexed_locations, _config.locations);
+
     if (!location_found)
     {
-        std::cerr << "Error: No matching location found for URI: " << request_uri << std::endl;
+		// find the closest correct location ex : www/static/allo.html = nearest location is www/static
+		
+		
+		
+		
+        // std::cerr << "Error: No matching location found for URI: " << request_uri << std::endl;
         _respond_with_error(_socket, 404, "Not Found", matched_location);
         return;
     }
 
+    // Check if the request method is allowed
+    std::vector<std::string> allowed_methods = _config.locations[found].getAllowedMethods();
+    bool method_allowed = false;
+
+    for (size_t i = 0; i < allowed_methods.size(); ++i)
+	{
+        if (request_method == allowed_methods[i])
+		{
+            method_allowed = true;
+            break;
+        }
+    }
+
+    if (!method_allowed)
+	{
+        try {
+            _respond_with_error(_socket, 405, "Method Not Allowed", matched_location);
+        }
+        catch (std::exception& e)
+        {
+            DefaultErrorPage(_socket, 405);
+        }
+        return;
+    }
+
     std::string full_path = matched_root + request_uri.substr(matched_root.length());
-    std::cout << "FULL PATH: " << full_path << std::endl;
-    std::cout << "METHOD: " << request_method << std::endl;
+
+    bool is_directory = false;
+    if (!fileOrDirectoryExists(full_path, is_directory))
+	{
+        try
+		{
+            _respond_with_error(_socket, 404, "Not Found", matched_location);
+        }
+        catch (std::exception& e)
+        {
+            DefaultErrorPage(_socket, 404);
+        }
+        return;
+    }
 
     if (request_method == "POST")
     {
@@ -427,7 +460,7 @@ void RequestHandler::handleRequest()
         std::cout << "BODY : " << _request.getBody() << std::endl;
         // Handle POST request
     }
-    else if (request_method == "GET" && request_uri == "/")
+    else if (request_method == "GET" && request_uri == "/index.html")
     {
         std::cout << "Handle Request >Root< : " << request_uri << std::endl;
         _handleRootDirectoryRequest(_socket, matched_root, request_uri, matched_location);

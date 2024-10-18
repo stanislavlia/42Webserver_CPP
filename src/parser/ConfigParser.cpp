@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 08:26:11 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 08:04:45 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,6 @@ void	parseAutoIndex(std::istringstream& iss, Location& location)
 	std::getline(iss, line, ';');
 	line = line.substr(1);
 
-	std::cout << "line: " << line << std::endl;
 	if (line == "on")
 		location.setAutoIndex(true);
 	else if (line == "off")
@@ -314,7 +313,7 @@ std::vector<ServerParam>    ConfigParser::parse()
 						if (in_location_block)
 						{
 							current_server.addLocation(current_location);
-							current_location = Location();
+							// current_location = Location();
 							in_location_block = false;
 						}
 						else if (in_server_block)
