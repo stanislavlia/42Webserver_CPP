@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   delete.cpp                                         :+:      :+:    :+:   */
+/*   Delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:16:07 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 12:16:39 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:20:56 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,10 +15,8 @@
 void	RequestHandler::_handleDeleteRequest(int client_fd, const std::string& full_path, const Location& location)
 {
 	std::string trimmed_uri = full_path.c_str();
-	std::cout << "FULL PATH: " << full_path << std::endl;
 	size_t pos = trimmed_uri.find_last_of('/');
 	trimmed_uri = trimmed_uri.substr(0, pos);
-	std::cout << "TRIMMED URI in delete request: " << trimmed_uri << std::endl;
 	if (access(trimmed_uri.c_str(), W_OK) != 0 || access(trimmed_uri.c_str(), X_OK) != 0)
 	{
 		std::cout << "Dont have permission to read on the directory" << std::endl;

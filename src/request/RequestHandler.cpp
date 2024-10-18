@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 12:17:10 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 12:29:13 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,7 @@ void	RequestHandler::handleRequest()
 	else
 	{
 		// std::cout << "NOT ROOT URI" << std::endl;
-		request_uri = "www" + _request.getUri(); // Add the www prefix
+		request_uri = "www" +_request.getUri(); // Add the www prefix
 	}
 
 	std::string request_method = _request.getMethod();
@@ -337,7 +337,7 @@ void	RequestHandler::handleRequest()
 	else if (request_method == "GET")
 	{
 		std::cout << "Handle Request >Request< : " << request_uri << std::endl;
-		_handleSpecificUriRequest(_socket, matched_root, request_uri);
+		// _handleSpecificUriRequest(_socket, matched_root, request_uri);
 		_handleFileOrDirectoryRequest(_socket, full_path, request_uri, matched_location);
 	}
 }
