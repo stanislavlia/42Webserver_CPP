@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 12:29:13 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/22 12:27:08 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,6 +185,12 @@ void	restoreOriginalOrder(std::vector<std::pair<size_t, Location> >& indexed_loc
 
 void	RequestHandler::handleRequest()
 {
+	// CHECK REQUEST SIZE AND CONTENT LENGTH
+
+	std::cout << "Request size : " << _request.getBody().size() << std::endl;
+	// std::cout << "Request content length : " << _request.getHeaders().at("Content-Length") << std::endl;
+	
+	// exit(0);
 	std::string request_uri;
 	if (_request.getUri() == "/")
 	{
@@ -223,15 +229,11 @@ void	RequestHandler::handleRequest()
 		if (request_uri.find(location_root) == 0) // Check if the URI starts with the location root
 		{
 			std::string full_path = location_root + request_uri.substr(location_root.length());
-			// bool is_directory = false;
-			// if (fileOrDirectoryExists(full_path, is_directory))
-			// {
-				matched_root = location_root;
-				matched_location = indexed_locations[i].second;
-				location_found = true;
-				found = indexed_locations[i].first; // Store the original index
-				break;
-			// }
+			matched_root = location_root;
+			matched_location = indexed_locations[i].second;
+			location_found = true;
+			found = indexed_locations[i].first; // Store the original index
+			break;
 		}
 	}
 
@@ -277,6 +279,8 @@ void	RequestHandler::handleRequest()
 	std::vector<std::string> allowed_methods = _config.locations[found].getAllowedMethods();
 	bool method_allowed = false;
 
+	std::cout << "request method: " << request_method << std::endl;
+
 	for (size_t i = 0; i < allowed_methods.size(); ++i)
 	{
 		if (request_method == allowed_methods[i])
@@ -300,28 +304,13 @@ void	RequestHandler::handleRequest()
 
 	std::string full_path = matched_root + request_uri.substr(matched_root.length());
 
-	// bool is_directory = false;
-	// if (!fileOrDirectoryExists(full_path, is_directory))
-	// {
-	// 	std::cerr << "Error: File or directory not found: " << full_path << std::endl;
-	// 	try
-	// 	{
-	// 		_respond_with_error(_socket, 404, "Not Found", matched_location);
-	// 	}
-	// 	catch (std::exception& e)
-	// 	{
-	// 		DefaultErrorPage(_socket, 404);
-	// 	}
-		// return;
-	// }
-
 	std::cout << "REQUEST METHOD: " << request_method << std::endl;
 	
 	if (request_method == "POST")
 	{
 		std::cout << "Handle Request >POST< : " << request_uri << std::endl;
-		std::cout << "BODY : " << _request.getBody() << std::endl;
 		// Handle POST request
+		_handlePostRequest(_socket, full_path, matched_location);
 	}
 	else if (request_method == "DELETE")
 	{

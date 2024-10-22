@@ -166,6 +166,127 @@ void    Server::setup_server()
 // 	}
 // };
 
+// void Server::run()
+// {
+// 	int activity;
+// 	int max_fd = _server_fd;
+// 	int new_socket;
+// 	int valread;
+
+// 	bool is_running = true;
+// 	char buffer[BUFF_SIZE] = {0};
+
+// 	while (is_running)
+// 	{
+// 		fd_set current_fds = read_fds;
+
+// 		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+// 		if (activity < 0)
+// 			continue;
+
+// 		if (FD_ISSET(_server_fd, &current_fds))
+// 		{
+// 			new_socket = _accept_connection();
+// 			if (new_socket >= 0)
+// 			{
+// 				FD_SET(new_socket, &read_fds);
+// 				if (new_socket > max_fd)
+// 					max_fd = new_socket;
+
+// 				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
+// 			}
+// 		}
+
+// 		for (int i = 0; i <= max_fd; i++)
+// 		{
+// 			if (FD_ISSET(i, &current_fds) && i != _server_fd)
+// 			{
+// 				while (true)
+// 				{
+// 					memset(buffer, 0, sizeof(buffer));
+// 					valread = read(i, buffer, sizeof(buffer));
+// 					if (valread <= 0)
+// 					{
+// 						if (valread == 0)
+// 						{
+// 							Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
+// 						}
+// 						else
+// 						{
+// 							Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
+// 						}
+// 						close(i);
+// 						FD_CLR(i, &read_fds);
+// 						break;
+// 					}
+// 					_request.append(buffer, valread);
+// 					// std::cout << "Request: " << _request << std::endl;
+
+// 					// Check if we have received the full request
+// 					size_t header_end = _request.find("\r\n\r\n");
+// 					if (header_end != std::string::npos)
+// 					{
+// 						// Parse headers to find Content-Length
+// 						std::string headers = _request.substr(0, header_end);
+// 						size_t content_length_pos = headers.find("Content-Length: ");
+// 						if (content_length_pos != std::string::npos)
+// 						{
+// 							size_t content_length_end = headers.find("\r\n", content_length_pos);
+// 							std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16);
+// 							std::istringstream iss(content_length_str);
+// 							long content_length;
+// 							iss >> content_length;
+// 							// std::cout << " First Content-Length: " << content_length << std::endl;
+// 							size_t total_length = header_end + 4 + content_length;
+// 							if (_request.size() >= total_length)
+// 							{
+// 								// We have received the full request
+// 								Request request(configs[0]);
+// 								request.parseRequest(_request.c_str());
+
+// 								RequestHandler handler(i, request, configs[0]);
+// 								handler.handleRequest();
+// 								break;
+// 							}
+// 						}
+// 						else
+// 						{
+// 							std::cout << "in Else" << std::endl;
+// 							// Handle other cases like chunked transfer encoding if needed
+// 							// if (headers.find("Transfer-Encoding: ") != std::string::npos)
+// 							// {
+// 							// 	std::cout << "Transfer-Encoding: found" << std::endl;
+// 							// 	continue;
+// 							// }
+// 							// 	// Request request(configs[0]);
+// 							// 	// size_t transfer_encoding_pos = headers.find("transfer-encoding: ");
+// 							// 	// std::cout << "transfer_encoding_pos: " << transfer_encoding_pos << std::endl;
+// 							// 	// request.parseRequest(_request.c_str());
+
+// 							// 	// RequestHandler handler(i, request, configs[0]);
+// 							// 	// handler.handleRequest();
+// 							// 	// break;
+// 							// }
+// 							// if (headers.find("Transfer-Encoding: ") == std::string::npos)
+// 							// else
+// 							// {
+// 								std::cout << "Transfer-Encoding: not found" << std::endl;
+// 								// We have received the full request
+// 								Request request(configs[0]);
+// 								request.parseRequest(_request.c_str());
+
+// 								RequestHandler handler(i, request, configs[0]);
+// 								handler.handleRequest();
+// 								break;
+// 							// }
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
+// }
+
 void Server::run()
 {
 	int activity;

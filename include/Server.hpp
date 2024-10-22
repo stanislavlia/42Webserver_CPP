@@ -8,6 +8,7 @@
 class Server
 {  
 	private:
+		std::string _request_data;
 		std::vector<ServerParam> configs;
 		int _port;
 		// const char* _host;
@@ -24,13 +25,13 @@ class Server
 		void     _listen_socket();
 		int     _accept_connection();
 
-		std::string render_html(const std::string& path);
-		void        respond_with_html(int client_fd, const std::string& path, int status_code, const std::string& status_message);
-		void        respond_with_error(int socket, int status_code, const std::string& status_message);
-		void		handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri);
-		void		handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri);
-		void		handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri);
-		void		handleInvalidRequest(int client_fd, int validation_code);
+		// std::string render_html(const std::string& path);
+		// void        respond_with_html(int client_fd, const std::string& path, int status_code, const std::string& status_message);
+		// void        respond_with_error(int socket, int status_code, const std::string& status_message);
+		// void		handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri);
+		// void		handleSpecificUriRequest(int client_fd, const std::string& rootDir, const std::string& uri);
+		// void		handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri);
+		// void		handleInvalidRequest(int client_fd, int validation_code);
 		
 	
 	public:

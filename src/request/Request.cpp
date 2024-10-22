@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 08:31:27 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/22 11:42:02 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ void	Request::validateRequest()
     _valid = 0;
 }
 
-std::vector<std::string> split(const std::string& str, const std::string& delimiter)
+std::vector<std::string>    Request::split(const std::string& str, const std::string& delimiter)
 {
     std::vector<std::string> tokens;
     size_t start = 0;
@@ -142,6 +142,7 @@ void    Request::parseRequest(const std::string& rawRequest)
     std::istringstream requestStream(rawRequest);
     std::string line;
 
+    // std::cout << "rawRequest size " << rawRequest.size() << std::endl;
     // Parse request line
     if (std::getline(requestStream, line))
 	{

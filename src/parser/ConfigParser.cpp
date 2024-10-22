@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 10:30:51 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/22 07:21:36 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,11 +123,11 @@ void	parseErrorPage(std::istringstream& iss, Location& location)
 	location.setErrorPage(error_code, error_path);
 }
 
-void	parseClientMaxBodySize(std::istringstream& iss, Location& location)
+void	parseClientMaxBodySize(std::istringstream& iss, ServerParam& server)
 {
-	int clientMaxBodySize;
-	iss >> clientMaxBodySize;
-	location.setClientMaxBodySize(clientMaxBodySize);
+	int client_max_body_size;
+	iss >> client_max_body_size;
+	server.setClientMaxBodySize(client_max_body_size);
 }
 
 void	parseHost(std::istringstream& iss, ServerParam& server)
@@ -169,8 +169,8 @@ std::vector<ServerParam>    ConfigParser::parse()
 	}
 	
 	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "autoindex", "root", "allowed_methods" , "server", "}"};
-	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseHost};
-	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseClientMaxBodySize, parseErrorPage};
+	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseHost, parseClientMaxBodySize};
+	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage};
 	
 
 	std::string line;
@@ -206,14 +206,14 @@ std::vector<ServerParam>    ConfigParser::parse()
 						functions[2](iss, current_server);
 						break;
 					case CLIENT_MAX_BODY_SIZE:
-						functions_location[4](iss, current_location);
+						functions[3](iss, current_server);
 						break;
 					case INDEX:
 						if (in_location_block)
 							functions_location[0](iss, current_location);
 						break;
 					case ERROR_PAGE:
-						functions_location[5](iss, current_location);
+						functions_location[4](iss, current_location);
 						break;
 					case LOCATION:
 					{
