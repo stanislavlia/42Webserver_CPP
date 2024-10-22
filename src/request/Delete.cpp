@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:16:07 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 12:20:56 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/18 13:20:47 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,19 @@ void	RequestHandler::_handleDeleteRequest(int client_fd, const std::string& full
 			_DefaultErrorPage(client_fd, 404);
 		}
 	}
+	else if (open(full_path.c_str(), O_WRONLY | O_EXCL) == -1)
+    {
+        // Attempt to open the file with exclusive access to check if it is in use
+        std::cout << "File is in use" << std::endl;
+        try
+        {
+            _respond_with_error(client_fd, 423, "Locked", location); // 423 Locked
+        }
+        catch (std::exception& e)
+        {
+            _DefaultErrorPage(client_fd, 423);
+        }
+    }
 	else if (remove(full_path.c_str()) == 0)
 	{
 		_serveHtmlContent(client_fd, "<h1>File deleted successfully</h1>", 200, "OK");

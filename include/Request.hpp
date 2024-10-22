@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/09/24 09:57:46 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/10/22 11:22:24 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ class	Request
 		std::map<std::string, std::string>	getHeaders() const;
 		std::string	getBody() const;
 		int			isValid() const;
+
+		std::vector<std::string> split(const std::string& str, const std::string& delimiter);
 }	;
 
 
