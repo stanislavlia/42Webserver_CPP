@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 08:08:43 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/04 09:29:30 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ int main(int ac, char **av)
 
     try
     {
-    server.setup_server();
+        server.setup_server();
     }
     catch (const std::exception& e)
     {

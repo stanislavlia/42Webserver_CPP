@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/22 12:27:08 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/04 11:00:14 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,13 +185,11 @@ void	restoreOriginalOrder(std::vector<std::pair<size_t, Location> >& indexed_loc
 
 void	RequestHandler::handleRequest()
 {
-	// CHECK REQUEST SIZE AND CONTENT LENGTH
-
-	std::cout << "Request size : " << _request.getBody().size() << std::endl;
 	// std::cout << "Request content length : " << _request.getHeaders().at("Content-Length") << std::endl;
 	
 	// exit(0);
 	std::string request_uri;
+	std::cout << "Request URI: " << _request.getUri() << std::endl;
 	if (_request.getUri() == "/")
 	{
 		// std::cout << "ROOT URI" << std::endl;

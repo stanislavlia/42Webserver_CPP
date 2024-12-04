@@ -8,7 +8,7 @@
 class Server
 {  
 	private:
-		std::string _request_data;
+		std::string _complete_request;
 		std::vector<ServerParam> configs;
 		int _port;
 		// const char* _host;
@@ -24,6 +24,7 @@ class Server
 		void    _bind_socket();
 		void     _listen_socket();
 		int     _accept_connection();
+		void   _handle_new_connections(int& max_fd, fd_set& read_fds, int _server_fd);
 
 		// std::string render_html(const std::string& path);
 		// void        respond_with_html(int client_fd, const std::string& path, int status_code, const std::string& status_message);

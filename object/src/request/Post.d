@@ -1,5 +1,5 @@
-object/src/parser/ConfigParser.o: src/parser/ConfigParser.cpp \
-  include/ConfigParser.hpp include/Webserver.hpp \
+object/src/request/Post.o: src/request/Post.cpp \
+  include/RequestHandler.hpp include/Request.hpp include/Webserver.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/string \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++config.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
@@ -224,4 +224,24 @@ object/src/parser/ConfigParser.o: src/parser/ConfigParser.cpp \
   /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
   /usr/include/x86_64-linux-gnu/bits/sigthread.h \
   /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
-  include/ServerParam.hpp include/Location.hpp
+  include/ServerParam.hpp include/Location.hpp \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/algorithm \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_algo.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/algorithmfwd.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_heap.h \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_tempbuf.h \
+  include/ConfigParser.hpp include/Server.hpp include/Logger.hpp \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdarg \
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ctime \
+  /usr/include/x86_64-linux-gnu/sys/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/statx.h /usr/include/linux/stat.h \
+  /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
+  /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
+  /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
+  /usr/include/dirent.h /usr/include/x86_64-linux-gnu/bits/dirent.h \
+  /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+  /usr/include/linux/limits.h \
+  /usr/include/x86_64-linux-gnu/bits/dirent_ext.h

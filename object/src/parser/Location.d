@@ -1,5 +1,5 @@
-object/src/parser/ConfigParser.o: src/parser/ConfigParser.cpp \
-  include/ConfigParser.hpp include/Webserver.hpp \
+object/src/parser/Location.o: src/parser/Location.cpp \
+  include/Location.hpp include/Webserver.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/string \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/c++config.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
@@ -223,5 +223,4 @@ object/src/parser/ConfigParser.o: src/parser/ConfigParser.cpp \
   /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
   /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
   /usr/include/x86_64-linux-gnu/bits/sigthread.h \
-  /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
-  include/ServerParam.hpp include/Location.hpp
+  /usr/include/x86_64-linux-gnu/bits/signal_ext.h

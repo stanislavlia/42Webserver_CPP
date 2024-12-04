@@ -23,7 +23,6 @@ Server::~Server()
 
 };
 
-
 //==================SERVER SETUP=====================
 void    Server::_create_server_socket()
 {
@@ -98,290 +97,177 @@ void    Server::setup_server()
 
 };
 
-// void	Server::run()
-// {
+void	Server::_handle_new_connections(int& max_fd, fd_set& read_fds, int _server_fd)
+{
+	fd_set current_fds = read_fds;
 
-// 	int activity;
-// 	int max_fd = _server_fd;
-// 	int new_socket;
-// 	int valread;
+	int activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+	if (activity < 0)
+		return;
 
-// 	bool is_running = true;
-// 	char buffer[BUFF_SIZE] = {0};
+	if (FD_ISSET(_server_fd, &current_fds))
+	{
+		int new_socket = _accept_connection();
+		if (new_socket >= 0)
+		{
+			FD_SET(new_socket, &read_fds);
+			if (new_socket > max_fd)
+				max_fd = new_socket;
 
-// 	while (is_running)
-// 	{
-// 		fd_set current_fds = read_fds;
+			Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
+		}
+	}
+}
 
-// 		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-// 		if (activity < 0)
-// 			continue;
+bool	isRequestComplete(const std::string& request)
+{
+	// Check for the end of headers marker
+	size_t headers_end = request.find("\r\n\r\n");
+	if (headers_end == std::string::npos)
+	{
+		std::cout << "==========False 1============" << std::endl;
+		return false; // Headers are not complete
+	}
 
-// 		if (FD_ISSET(_server_fd, &current_fds))
-// 		{
-// 			new_socket = _accept_connection();
-// 			if (new_socket >= 0)
-// 			{   
-// 				FD_SET(new_socket, &read_fds);
-// 				if (new_socket > max_fd)
-// 					max_fd = new_socket;
-				
-// 				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-// 			}
-// 		}
+	// Extract headers
+	std::string headers = request.substr(0, headers_end);
 
-// 		for (int i = 0; i <= max_fd; i++)
-// 		{
-// 			// std::cout << "BUFFER : " << buffer << std::endl;
-// 			if (FD_ISSET(i, &current_fds) && i != _server_fd) 
-// 			{
-// 				std::string request_data;
-// 				while (true)
-// 				{
-// 					memset(buffer, 0, sizeof(buffer));
-// 					valread = read(i, buffer, sizeof(buffer));
-// 					if (valread < 0)
-// 						break ;
-// 					if (valread == 0)
-// 					{
-// 						// std::cout << "BUFFER valread = 0: " << buffer << std::endl;
-// 						Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
-// 						close(i);
-// 						FD_CLR(i, &read_fds);
-// 					}
-// 					else if (valread > 0)
-// 					{
-// 						std::string buffer_str(buffer);
-// 						// std::cout << "BUFFER STR: " << buffer_str << std::endl;
-// 						// exit(0);
-// 						Request	request(configs[0]);
-// 						request.parseRequest(buffer);
+	// Check for Transfer-Encoding: chunked header
+	size_t transfer_encoding_pos = headers.find("Transfer-Encoding: chunked");
+	if (transfer_encoding_pos != std::string::npos)
+	{
+		// Check if the entire chunked body has been received
+		size_t chunked_end = request.find("0\r\n\r\n", headers_end + 4);
+		if (chunked_end == std::string::npos)
+		{
+			std::cout << "==========False 3============" << std::endl;
+			return false; // Chunked body is not complete
+		}
+	}
 
-// 						RequestHandler handler(i, request, configs[0]);
-// 						handler.handleRequest();
-// 					}
-// 				}
-// 			}   
-// 		}
-// 	}
-// };
 
-// void Server::run()
-// {
-// 	int activity;
-// 	int max_fd = _server_fd;
-// 	int new_socket;
-// 	int valread;
+	// Check for Content-Length header
+	size_t content_length_pos = headers.find("Content-Length: ");
+	if (content_length_pos != std::string::npos)
+	{
+		size_t content_length_end = headers.find("\r\n", content_length_pos);
+		std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16);
+		
+		// Convert content_length_str to size_t using std::istringstream
+		std::istringstream iss(content_length_str);
+		size_t content_length;
+		iss >> content_length;
 
-// 	bool is_running = true;
-// 	char buffer[BUFF_SIZE] = {0};
+		// Check if the entire body has been received
+		size_t body_start = headers_end + 4;
+		size_t body_length = request.size() - body_start;
+		std::cout << "Body length: " << body_length << std::endl;
+		std::cout << "Content length: " << content_length << std::endl;
+		if (body_length < content_length)
+		{
+			std::cout << "==========False 2============" << std::endl;
+			return false; // Body is not complete
+		}
+	}
 
-// 	while (is_running)
-// 	{
-// 		fd_set current_fds = read_fds;
+	std::cout << "==========True============" << std::endl;
+	return true; // Request is complete
+}
 
-// 		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-// 		if (activity < 0)
-// 			continue;
-
-// 		if (FD_ISSET(_server_fd, &current_fds))
-// 		{
-// 			new_socket = _accept_connection();
-// 			if (new_socket >= 0)
-// 			{
-// 				FD_SET(new_socket, &read_fds);
-// 				if (new_socket > max_fd)
-// 					max_fd = new_socket;
-
-// 				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-// 			}
-// 		}
-
-// 		for (int i = 0; i <= max_fd; i++)
-// 		{
-// 			if (FD_ISSET(i, &current_fds) && i != _server_fd)
-// 			{
-// 				while (true)
-// 				{
-// 					memset(buffer, 0, sizeof(buffer));
-// 					valread = read(i, buffer, sizeof(buffer));
-// 					if (valread <= 0)
-// 					{
-// 						if (valread == 0)
-// 						{
-// 							Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
-// 						}
-// 						else
-// 						{
-// 							Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
-// 						}
-// 						close(i);
-// 						FD_CLR(i, &read_fds);
-// 						break;
-// 					}
-// 					_request.append(buffer, valread);
-// 					// std::cout << "Request: " << _request << std::endl;
-
-// 					// Check if we have received the full request
-// 					size_t header_end = _request.find("\r\n\r\n");
-// 					if (header_end != std::string::npos)
-// 					{
-// 						// Parse headers to find Content-Length
-// 						std::string headers = _request.substr(0, header_end);
-// 						size_t content_length_pos = headers.find("Content-Length: ");
-// 						if (content_length_pos != std::string::npos)
-// 						{
-// 							size_t content_length_end = headers.find("\r\n", content_length_pos);
-// 							std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16);
-// 							std::istringstream iss(content_length_str);
-// 							long content_length;
-// 							iss >> content_length;
-// 							// std::cout << " First Content-Length: " << content_length << std::endl;
-// 							size_t total_length = header_end + 4 + content_length;
-// 							if (_request.size() >= total_length)
-// 							{
-// 								// We have received the full request
-// 								Request request(configs[0]);
-// 								request.parseRequest(_request.c_str());
-
-// 								RequestHandler handler(i, request, configs[0]);
-// 								handler.handleRequest();
-// 								break;
-// 							}
-// 						}
-// 						else
-// 						{
-// 							std::cout << "in Else" << std::endl;
-// 							// Handle other cases like chunked transfer encoding if needed
-// 							// if (headers.find("Transfer-Encoding: ") != std::string::npos)
-// 							// {
-// 							// 	std::cout << "Transfer-Encoding: found" << std::endl;
-// 							// 	continue;
-// 							// }
-// 							// 	// Request request(configs[0]);
-// 							// 	// size_t transfer_encoding_pos = headers.find("transfer-encoding: ");
-// 							// 	// std::cout << "transfer_encoding_pos: " << transfer_encoding_pos << std::endl;
-// 							// 	// request.parseRequest(_request.c_str());
-
-// 							// 	// RequestHandler handler(i, request, configs[0]);
-// 							// 	// handler.handleRequest();
-// 							// 	// break;
-// 							// }
-// 							// if (headers.find("Transfer-Encoding: ") == std::string::npos)
-// 							// else
-// 							// {
-// 								std::cout << "Transfer-Encoding: not found" << std::endl;
-// 								// We have received the full request
-// 								Request request(configs[0]);
-// 								request.parseRequest(_request.c_str());
-
-// 								RequestHandler handler(i, request, configs[0]);
-// 								handler.handleRequest();
-// 								break;
-// 							// }
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// }
+// Add this to maintain a buffer for each client
+std::map<int, std::string> client_buffers;
 
 void Server::run()
 {
-	int activity;
 	int max_fd = _server_fd;
-	int new_socket;
-	int valread;
-
-	bool is_running = true;
 	char buffer[BUFF_SIZE] = {0};
 
-	while (is_running)
+	while (true)
 	{
-		fd_set current_fds = read_fds;
+		_handle_new_connections(max_fd, read_fds, _server_fd);
 
-		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-		if (activity < 0)
-			continue;
-
-		if (FD_ISSET(_server_fd, &current_fds))
-		{
-			new_socket = _accept_connection();
-			if (new_socket >= 0)
-			{
-				FD_SET(new_socket, &read_fds);
-				if (new_socket > max_fd)
-					max_fd = new_socket;
-
-				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-			}
-		}
-
+		// Loop through all clients to handle their requests
 		for (int i = 0; i <= max_fd; i++)
 		{
-			if (FD_ISSET(i, &current_fds) && i != _server_fd)
+			if (FD_ISSET(i, &read_fds) && i != _server_fd)
 			{
-				std::string request_data;
-				while (true)
+				memset(buffer, 0, sizeof(buffer));
+				int valread = read(i, buffer, sizeof(buffer));
+
+				if (valread <= 0)
 				{
-					memset(buffer, 0, sizeof(buffer));
-					valread = read(i, buffer, sizeof(buffer));
-					if (valread <= 0)
+					if (valread == 0)
 					{
-						if (valread == 0)
-						{
-							Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
-						}
-						else
-						{
-							Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
-						}
-						close(i);
-						FD_CLR(i, &read_fds);
-						break;
+						Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
 					}
-					request_data.append(buffer, valread);
-
-					// Check if we have received the full request
-					size_t header_end = request_data.find("\r\n\r\n");
-					if (header_end != std::string::npos)
+					else
 					{
-						// Parse headers to find Content-Length
-						std::string headers = request_data.substr(0, header_end);
-						size_t content_length_pos = headers.find("Content-Length: ");
-						if (content_length_pos != std::string::npos)
-						{
-							size_t content_length_end = headers.find("\r\n", content_length_pos);
-							std::string content_length_str = headers.substr(content_length_pos + 16, content_length_end - content_length_pos - 16);
-							std::istringstream iss(content_length_str);
-							int content_length;
-							iss >> content_length;
-							size_t total_length = header_end + 4 + content_length;
-							if (request_data.size() >= total_length)
-							{
-								// We have received the full request
-								Request request(configs[0]);
-								request.parseRequest(request_data.c_str());
-
-								RequestHandler handler(i, request, configs[0]);
-								handler.handleRequest();
-								break;
-							}
-						}
-						else
-						{
-							// Handle other cases like chunked transfer encoding if needed
-							Request request(configs[0]);
-							request.parseRequest(request_data.c_str());
-
-							RequestHandler handler(i, request, configs[0]);
-							handler.handleRequest();
-							break;
-						}
+						Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
 					}
+					close(i);
+					FD_CLR(i, &read_fds);
+					client_buffers.erase(i); // Remove the buffer for this client
+					break;
+				}
+
+				// Append data to the client's buffer
+				client_buffers[i].append(buffer, valread);
+				std::cout << "Request in server core: " << client_buffers[i] << std::endl;
+				// std::cout << "Request in server core: " << client_buffers[i] << std::endl;
+
+				// Check if the request is complete
+				if (isRequestComplete(client_buffers[i]))
+				{
+					// Process the complete request
+					Request request(configs[0]);
+					request.parseRequest(client_buffers[i].c_str());
+
+					RequestHandler handler(i, request, configs[0]);
+					handler.handleRequest();
+					std::cout << "Request complete" << std::endl;
+
+					// Clear the buffer for this client after processing
+					client_buffers[i].clear();
+					break;
+				}
+				else
+				{
+					std::cout << "Request not complete" << std::endl;
 				}
 			}
 		}
 	}
 }
+
+// void	Server::run()
+// {
+// 	int activity;
+// 	int max_fd = _server_fd;
+// 	int new_socket;
+// 	int valread;
+
+// 	bool is_running = true;
+// 	// char buffer[BUFF_SIZE] = {0};
+
+// 	while (is_running)
+// 	{
+// 		fd_set current_fds = read_fds;
+
+// 		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
+// 		if (activity < 0)
+// 			continue;
+
+// 		if (FD_ISSET(_server_fd, &current_fds))
+// 		{
+// 			new_socket = _accept_connection();
+// 			if (new_socket >= 0)
+// 			{
+// 				FD_SET(new_socket, &read_fds);
+// 				if (new_socket > max_fd)
+// 					max_fd = new_socket;
+
+// 				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
+// 			}
+// 		}
+// 	}
+// }

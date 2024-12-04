@@ -226,9 +226,22 @@ object/src/Server.o: src/Server.cpp include/Server.hpp \
   /usr/include/x86_64-linux-gnu/bits/signal_ext.h include/Logger.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdarg \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ctime \
-  include/ServerParam.hpp include/Request.hpp \
+  include/ServerParam.hpp include/Location.hpp include/Request.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/algorithm \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_algo.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/algorithmfwd.h \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_heap.h \
-  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_tempbuf.h
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/bits/stl_tempbuf.h \
+  include/RequestHandler.hpp include/ConfigParser.hpp \
+  /usr/include/x86_64-linux-gnu/sys/stat.h \
+  /usr/include/x86_64-linux-gnu/bits/statx.h /usr/include/linux/stat.h \
+  /usr/include/linux/types.h /usr/include/x86_64-linux-gnu/asm/types.h \
+  /usr/include/asm-generic/types.h /usr/include/asm-generic/int-ll64.h \
+  /usr/include/x86_64-linux-gnu/bits/statx-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_statx.h \
+  /usr/include/dirent.h /usr/include/x86_64-linux-gnu/bits/dirent.h \
+  /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+  /usr/include/linux/limits.h \
+  /usr/include/x86_64-linux-gnu/bits/dirent_ext.h

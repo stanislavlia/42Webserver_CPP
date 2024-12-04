@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/22 12:05:55 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/04 12:09:35 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ std::string RequestHandler::_getExactBody(const std::string& body, int content_l
 
     // Extract the exact number of bytes specified by Content-Length
     std::string exact_body = body.substr(0, content_length);
+	std::cout << "exact body: " << exact_body << std::endl;
     return exact_body;
 }
 
@@ -165,42 +166,42 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 		// std::cout << "boundary delimiter: " << boundary_delimiter << std::endl;
 		// std::cout << "body before extract: " << _request.getBody() << std::endl;
 		std::string body = _getExactBody(_request.getBody(), content_length);
-		// std::cout << "body: " << body << std::endl;
-		// std::cout << "Header " << _request.getHeaders().at("Content-Type") << std::endl;
+		std::cout << "body: " << body << std::endl;
+		std::cout << "Header " << _request.getHeaders().at("Content-Type") << std::endl;
 
 		_ParseMultipartFormData(client_fd, body, boundary_delimiter, location);
 	}
-	// std::cout << "BODY request: " << _request.getBody() << "End of body ------------" << std::endl;
-	// //read the body of the request based on the content length and parse it
-	// // Parse the body according to the content type
-	// std::cout << "Before parsing body" << std::endl;
-	// std::cout << "Content-Type: " << _request.getHeaders().at("Content-Type") << std::endl;
-	// if (_request.getHeaders().at("Content-Type") == "text/plain")
-	// {
-    // 	// Determine the file path where the plain text should be saved
-   	// 	std::string file_path = "uploads/" + location.getRoot() + _request.getUri(); // Update this path as needed
+	std::cout << "BODY request: " << _request.getBody() << "End of body ------------" << std::endl;
+	//read the body of the request based on the content length and parse it
+	// Parse the body according to the content type
+	std::cout << "Before parsing body" << std::endl;
+	std::cout << "Content-Type: " << _request.getHeaders().at("Content-Type") << std::endl;
+// 	if (_request.getHeaders().at("Content-Type") == "text/plain")
+// 	{
+//     	// Determine the file path where the plain text should be saved
+//    		std::string file_path = "uploads/" + location.getRoot() + _request.getUri(); // Update this path as needed
 
-    // 	// Open the file for writing
-	// 	std::cout << "file path: " << file_path << std::endl;
-    // 	std::ofstream outfile(file_path.c_str());
-    // 	if (!outfile)
-    // 	{
-    //     	std::cerr << "Error opening file for writing: " << file_path << std::endl;
-    //     	try
-    //     	{
-    //     	    _respond_with_error(client_fd, 500, "Internal Server Error", location);
-    //     	}
-    //     	catch (const std::exception& e)
-    //     	{
-    //     	    _DefaultErrorPage(client_fd, 500);
-    //     	}
-    //     	return;
-    // 	}
-	// 		// Write the plain text content to the file
-    // 		outfile << body;
-    // 		outfile.close();
-    // 		// Respond to the client indicating success
-	// 		_serveHtmlContent(client_fd, "<h1>File uploaded successfully</h1>", 200, "OK");
-	// }
-	// std::cout << "After parsing body" << std::endl;
+//     	// Open the file for writing
+// 		std::cout << "file path: " << file_path << std::endl;
+//     	std::ofstream outfile(file_path.c_str());
+//     	if (!outfile)
+//     	{
+//         	std::cerr << "Error opening file for writing: " << file_path << std::endl;
+//         	try
+//         	{
+//         	    _respond_with_error(client_fd, 500, "Internal Server Error", location);
+//         	}
+//         	catch (const std::exception& e)
+//         	{
+//         	    _DefaultErrorPage(client_fd, 500);
+//         	}
+//         	return;
+//     	}
+// 			// Write the plain text content to the file
+//     		outfile << body;
+//     		outfile.close();
+//     		// Respond to the client indicating success
+// 			_serveHtmlContent(client_fd, "<h1>File uploaded successfully</h1>", 200, "OK");
+// 	}
+// 	std::cout << "After parsing body" << std::endl;
 }

@@ -224,6 +224,7 @@ object/src/main.o: src/main.cpp include/ConfigParser.hpp \
   /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
   /usr/include/x86_64-linux-gnu/bits/sigthread.h \
   /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
-  include/ServerParam.hpp include/Server.hpp include/Logger.hpp \
+  include/ServerParam.hpp include/Location.hpp include/Server.hpp \
+  include/Logger.hpp \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/cstdarg \
   /usr/bin/../lib/gcc/x86_64-linux-gnu/12/../../../../include/c++/12/ctime
