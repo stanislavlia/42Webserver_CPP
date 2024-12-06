@@ -43,31 +43,37 @@ std::string RequestHandler::_getExactBody(const std::string& body, int content_l
 void	RequestHandler::_ParseMultipartFormData(int client_fd, const std::string& body, const std::string& boundary_delimiter, const Location& location)
 {
 	(void)client_fd;
-	// Split the body into parts based on the boundary delimiter
+	std::cout << "==== IN MULTIPART FORM DATA 2 ====" << std::endl;
+	// Split the body into parts based on the boundary delimiter\n";
 	std::vector<std::string> parts = _request.split(body, "--" + boundary_delimiter);
+	//print the parts
+
 	std::cout << "parts size: " << parts.size() << std::endl;
-	// std::cout << "Part 1" << parts[1] << std::endl;
+	
 	for (size_t i = 0; i < parts.size(); i++)
 	{
+		std::cout << "==== I ====" << i << std::endl;
 		if (parts[i].empty() || parts[i] == "--")
 		{
+			std::cout << "Empty part" << std::endl;  
 			continue;
 		}
 		size_t headerEnd = parts[i].find("\r\n\r\n");
 		if (headerEnd == std::string::npos)
 		{
+			std::cerr << "Header end not found" << std::endl;
 			continue;
 		}
 		std::string	headers = parts[i].substr(0, headerEnd);
 		std::string	content = parts[i].substr(headerEnd + 4);
 
 		size_t contentEnd = content.find("\r\n--" + boundary_delimiter);
-		// std::cout << "contentEnd: " << contentEnd << std::endl;
-		// std::cout << "std::string::npos: " << std::string::npos << std::endl;
+		std::cout << "contentEnd: " << contentEnd << std::endl;
+		std::cout << "std::string::npos: " << std::string::npos << std::endl;
         if (contentEnd == std::string::npos)
 		{
 			// std::cout << "In cond to remove boundary" << std::endl;
-			contentEnd = content.find("\r\n");
+			contentEnd = content.find("\r\n--");
             content = content.substr(0, contentEnd);
 			// std::cout << "content: " << content << std::endl;
         }
@@ -89,7 +95,9 @@ void	RequestHandler::_ParseMultipartFormData(int client_fd, const std::string& b
 		if (headersMap.find("Content-Disposition") != headersMap.end())
 		{
 			std::string	contentDisposition = headersMap["Content-Disposition"];
+			std ::cout << "==== Content-Disposition ==== " << contentDisposition << std::endl;
 			size_t		fileNamePos = contentDisposition.find("filename=\"");
+			std::cout << "==== fileNamePos ==== " << fileNamePos << std::endl;
 			if (fileNamePos != std::string::npos)
 			{
 				size_t		fileNameEnd = contentDisposition.find("\"", fileNamePos + 10);
@@ -122,7 +130,7 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 
 	(void)rootDir;
 	// check the content length header exists
-	std::cout << "max body size: " << _config.getClientMaxBodySize() << std::endl;
+	// std::cout << "max body size: " << _config.getClientMaxBodySize() << std::endl;
 	std::cout << "content type header: " << _request.getHeaders().at("Content-Type") << std::endl;
 	if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
 	{
@@ -163,45 +171,22 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 	if (_request.getHeaders().at("Content-Type").find("multipart/form-data") != std::string::npos)
 	{
 		std::string	boundary_delimiter =_ExtractBoundaryDelimiter();
+		std::cout << "==== IN MULTIPART FORM DATA ====" << std::endl;
 		// std::cout << "boundary delimiter: " << boundary_delimiter << std::endl;
 		// std::cout << "body before extract: " << _request.getBody() << std::endl;
 		std::string body = _getExactBody(_request.getBody(), content_length);
-		std::cout << "body: " << body << std::endl;
+		// std::cout << "body: " << body << std::endl;
 		std::cout << "Header " << _request.getHeaders().at("Content-Type") << std::endl;
 
 		_ParseMultipartFormData(client_fd, body, boundary_delimiter, location);
 	}
-	std::cout << "BODY request: " << _request.getBody() << "End of body ------------" << std::endl;
+	// std::cout << "BODY request: " << _request.getBody() << "End of body ------------" << std::endl;
 	//read the body of the request based on the content length and parse it
 	// Parse the body according to the content type
-	std::cout << "Before parsing body" << std::endl;
-	std::cout << "Content-Type: " << _request.getHeaders().at("Content-Type") << std::endl;
-// 	if (_request.getHeaders().at("Content-Type") == "text/plain")
-// 	{
-//     	// Determine the file path where the plain text should be saved
-//    		std::string file_path = "uploads/" + location.getRoot() + _request.getUri(); // Update this path as needed
-
-//     	// Open the file for writing
-// 		std::cout << "file path: " << file_path << std::endl;
-//     	std::ofstream outfile(file_path.c_str());
-//     	if (!outfile)
-//     	{
-//         	std::cerr << "Error opening file for writing: " << file_path << std::endl;
-//         	try
-//         	{
-//         	    _respond_with_error(client_fd, 500, "Internal Server Error", location);
-//         	}
-//         	catch (const std::exception& e)
-//         	{
-//         	    _DefaultErrorPage(client_fd, 500);
-//         	}
-//         	return;
-//     	}
-// 			// Write the plain text content to the file
-//     		outfile << body;
-//     		outfile.close();
-//     		// Respond to the client indicating success
-// 			_serveHtmlContent(client_fd, "<h1>File uploaded successfully</h1>", 200, "OK");
-// 	}
-// 	std::cout << "After parsing body" << std::endl;
+	// std::cout << "Before parsing body" << std::endl;
+	// std::cout << "Content-Type: " << _request.getHeaders().at("Content-Type") << std::endl;
+	// if (_request.getHeaders().at("Content-Type").find("image/png") != std::string::npos)
+	// {
+	// 	std::cout << "Image/png" << std::endl;
+	// }
 }

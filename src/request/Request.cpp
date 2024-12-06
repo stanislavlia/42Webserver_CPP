@@ -142,32 +142,84 @@ void    Request::parseRequest(const std::string& rawRequest)
     std::istringstream requestStream(rawRequest);
     std::string line;
 
-    // std::cout << "rawRequest size " << rawRequest.size() << std::endl;
+    std::cout << "===== RAW REQUEST SIZE =====" << rawRequest.size() << std::endl;
     // Parse request line
     if (std::getline(requestStream, line))
-	{
+    {
         std::istringstream lineStream(line);
         lineStream >> _method;
         lineStream >> _uri;
     }
     // Parse headers
     std::string headersStr;
+    std::map<std::string, std::string> headers;
     while (std::getline(requestStream, line) && line != "\r")
-	{
+    {
         headersStr += line + "\n";
+        std::istringstream headerStream(line);
+        std::string key, value;
+        if (std::getline(headerStream, key, ':') && std::getline(headerStream, value))
+        {
+            // Remove leading spaces from value
+            value.erase(0, value.find_first_not_of(" \t"));
+            headers[key] = value;
+        }
     }
     parseHeaders(headersStr);
 
     // Parse body
-    std::string bodyStr;
     if (_method == "POST")
     {
-        while (std::getline(requestStream, line))
-	    {
-            bodyStr += line + "\n";
+        std::map<std::string, std::string>::iterator contentLengthIt = headers.find("Content-Length");
+        if (contentLengthIt != headers.end())
+        {
+            int contentLength = std::atoi(contentLengthIt->second.c_str());
+            std::vector<char> body(contentLength);
+            requestStream.read(&body[0], contentLength);
+            std::string bodyStr(body.begin(), body.end());
+            parseBody(bodyStr);
+            std::cout << "==== BODY SIZE IN PARSE REQUEST: " << _body.size() << std::endl;
+            std::cout << "==== BITS BODY SIZE IN PARSE REQUEST: " << body.size() << std::endl;
         }
-        parseBody(bodyStr);
     }
     validateRequest();
 }
+
+// void    Request::parseRequest(const std::string& rawRequest)
+// {
+//     std::istringstream requestStream(rawRequest);
+//     std::string line;
+
+//     std::cout << "===== RAW REQUEST SIZE =====" << rawRequest.size() << std::endl;
+//     // Parse request line
+//     if (std::getline(requestStream, line))
+// 	{
+//         std::istringstream lineStream(line);
+//         lineStream >> _method;
+//         lineStream >> _uri;
+//     }
+//     // Parse headers
+//     std::string headersStr;
+//     while (std::getline(requestStream, line) && line != "\r")
+// 	{
+//         headersStr += line + "\n";
+//     }
+//     parseHeaders(headersStr);
+
+//     // Parse body
+//     std::string bodyStr;
+//     std::vector<char> BitsBody;
+//     if (_method == "POST")
+//     {
+//         while (std::getline(requestStream, line))
+// 	    {
+//             bodyStr += line + "\n";
+//             std::cout << "==== LINE IN PARSE REQUEST: " << line << std::endl;
+//         }
+//         parseBody(bodyStr);
+//         std::cout << "==== BODY SIZE IN PARSE REQUEST: " << _body.size() << std::endl;
+//         std::cout << "==== BITS BODY SIZE IN PARSE REQUEST: " << BitsBody.size() << std::endl;
+//     }
+//     validateRequest();
+// }
 

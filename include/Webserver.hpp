@@ -28,7 +28,7 @@
 
 #define PORT 8012
 #define HOST "localhost"
-#define BUFF_SIZE 1024
+#define BUFF_SIZE 10024
 #define CONN_QUEUE 4
 
 

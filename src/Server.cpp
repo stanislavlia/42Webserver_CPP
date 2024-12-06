@@ -189,6 +189,7 @@ void Server::run()
 		// Loop through all clients to handle their requests
 		for (int i = 0; i <= max_fd; i++)
 		{
+			std::cout << "=============NEW REQUEST LOOP================" << std::endl;
 			if (FD_ISSET(i, &read_fds) && i != _server_fd)
 			{
 				memset(buffer, 0, sizeof(buffer));
@@ -212,7 +213,7 @@ void Server::run()
 
 				// Append data to the client's buffer
 				client_buffers[i].append(buffer, valread);
-				std::cout << "Request in server core: " << client_buffers[i] << std::endl;
+				// std::cout << "Request in server core: " << client_buffers[i] << std::endl;
 				// std::cout << "Request in server core: " << client_buffers[i] << std::endl;
 
 				// Check if the request is complete
@@ -220,14 +221,16 @@ void Server::run()
 				{
 					// Process the complete request
 					Request request(configs[0]);
+					std::cout << "==== REQUEST LENGTH BEFORE PARSING IT ==== " << client_buffers[i].size() << std::endl;
 					request.parseRequest(client_buffers[i].c_str());
+					std::cout << "==== REQUEST LENGTH AFTER PARSING IT ==== " << client_buffers[i].size() << std::endl;
 
 					RequestHandler handler(i, request, configs[0]);
 					handler.handleRequest();
-					std::cout << "Request complete" << std::endl;
 
 					// Clear the buffer for this client after processing
 					client_buffers[i].clear();
+					std::cout << "Request complete" << std::endl;
 					break;
 				}
 				else
