@@ -233,7 +233,7 @@ void Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
                 if (bytes_sent[client_fd] >= total_length) {
                     std::cout << "Response sent to socket " << client_fd << std::endl;
                     bytes_sent.erase(client_fd);
-                    close(client_fd);`
+                    close(client_fd);
                     client_fds.erase(client_fds.begin() + i);
 				}
                 else
