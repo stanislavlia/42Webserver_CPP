@@ -5,119 +5,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-Server::Server()
-{
-};
-
-Server::Server(struct sockaddr_in  *sock_address, const std::vector<ServerParam>& server_param) 
-: configs(server_param) , _sock_address(sock_address)
-{
-	Logger::logMsg(DEBUG, "Server initialized");
-	_port = server_param[0].getPort();
-	_host = server_param[0].getHost().c_str();
-};
-
-
-Server::~Server()
-{
-
-};
-
-//==================SERVER SETUP=====================
-void    Server::_create_server_socket()
-{
-	_server_fd = socket(AF_INET, SOCK_STREAM, 0);
-
-	if (_server_fd == -1)
-		throw SocketHandlingException("Socket creation failed");
-	fcntl(_server_fd, F_SETFL, O_NONBLOCK);
-};
-
-
-void Server::_set_socket_options(int opt)
-{
-	if (setsockopt(_server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) != 0)
-	{ 
-		close(_server_fd);
-		throw SocketHandlingException("setsockopt() failed");
-	}
-}
-
-void	Server::_setup_socketaddress()
-{
-	_sock_address->sin_family = AF_INET;
-	//_sock_address->sin_addr.s_addr = host;
-	_sock_address->sin_port = htons(_port);
-	inet_pton(AF_INET, _host.c_str(), &_sock_address->sin_addr);
-};
-
-void    Server::_bind_socket()
-{
-	if (bind(_server_fd, (struct sockaddr *)_sock_address, sizeof(*_sock_address)) < 0)
-	{
-		close(_server_fd);
-		throw SocketHandlingException("Failed to bind");	
-	}
-};
-
-void    Server::_listen_socket()
-{
-	if (listen(_server_fd, CONN_QUEUE) < 0)
-	{
-		close(_server_fd);
-		throw SocketHandlingException("Failed to listen");		
-	}
-};
-
-int    Server::_accept_connection()
-{
-	int new_socket;
-	socklen_t addrlen = sizeof(*_sock_address);
-
-	new_socket = accept(_server_fd, (struct sockaddr*) _sock_address, &addrlen);
-	// Add some error handling & exceptions
-	return new_socket;
-};
-
-void    Server::setup_server()
-{
-	_create_server_socket();
-	_set_socket_options(1);
-	_setup_socketaddress(); // 0.0.0.0 - special address that listen on all available net interfaces
-
-	FD_ZERO(&read_fds);
-	FD_SET(_server_fd, &read_fds);
-
-	Logger::logMsg(INFO, "Server socket created and configured successfully");
-	Logger::logMsg(DEBUG, "Server FD: %d", _server_fd);
-
-	_bind_socket();
-	_listen_socket();
-	Logger::logMsg(DEBUG, "Listening on http://%s:%d", _host.c_str(), _port);
-
-};
-
-void	Server::_handle_new_connections(int& max_fd, fd_set& read_fds, int _server_fd)
-{
-	fd_set current_fds = read_fds;
-
-	int activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-	if (activity < 0)
-		return;
-
-	if (FD_ISSET(_server_fd, &current_fds))
-	{
-		int new_socket = _accept_connection();
-		if (new_socket >= 0)
-		{
-			FD_SET(new_socket, &read_fds);
-			if (new_socket > max_fd)
-				max_fd = new_socket;
-
-			Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-		}
-	}
-}
 
 bool	isRequestComplete(const std::string& request)
 {
@@ -125,7 +12,6 @@ bool	isRequestComplete(const std::string& request)
 	size_t headers_end = request.find("\r\n\r\n");
 	if (headers_end == std::string::npos)
 	{
-		std::cout << "==========False 1============" << std::endl;
 		return false; // Headers are not complete
 	}
 
@@ -140,7 +26,6 @@ bool	isRequestComplete(const std::string& request)
 		size_t chunked_end = request.find("0\r\n\r\n", headers_end + 4);
 		if (chunked_end == std::string::npos)
 		{
-			std::cout << "==========False 3============" << std::endl;
 			return false; // Chunked body is not complete
 		}
 	}
@@ -161,116 +46,281 @@ bool	isRequestComplete(const std::string& request)
 		// Check if the entire body has been received
 		size_t body_start = headers_end + 4;
 		size_t body_length = request.size() - body_start;
-		std::cout << "Body length: " << body_length << std::endl;
-		std::cout << "Content length: " << content_length << std::endl;
+		// std::cout << "Body length: " << body_length << std::endl;
+		// std::cout << "Content length: " << content_length << std::endl;
 		if (body_length < content_length)
 		{
-			std::cout << "==========False 2============" << std::endl;
 			return false; // Body is not complete
 		}
 	}
-
-	std::cout << "==========True============" << std::endl;
 	return true; // Request is complete
 }
 
-// Add this to maintain a buffer for each client
 std::map<int, std::string> client_buffers;
+
+// void Server::run()
+// {
+//     char buffer[BUFF_SIZE] = {0};
+//     int activity;
+//     int max_fd;
+//     std::vector<int> client_fds;
+// 	std::map<int, int> client_fd_to_port;
+
+//     while (true)
+// 	{
+//         FD_ZERO(&read_fds);
+//         max_fd = 0;
+
+//         // Add server sockets to read_fds
+//         for (size_t i = 0; i < _server_fds.size(); i++)
+// 		{
+//             FD_SET(_server_fds[i], &read_fds);
+//             if (_server_fds[i] > max_fd)
+// 			{
+//                 max_fd = _server_fds[i];
+//             }
+//         }
+
+//         // Add client sockets to read_fds
+//         for (size_t i = 0; i < client_fds.size(); i++)
+// 		{
+//             if (client_fds[i] > 0)
+// 			{
+//                 FD_SET(client_fds[i], &read_fds);
+//             }
+//             if (client_fds[i] > max_fd)
+// 			{
+//                 max_fd = client_fds[i];
+//             }
+//         }
+
+//         // Wait for activity on one of the sockets
+//         activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+//         if (activity < 0)
+// 		{
+//             Logger::logMsg(ERROR, "Select error");
+//             continue;
+//         }
+
+//         // Check for new connections on server sockets
+//         for (size_t i = 0; i < _server_fds.size(); i++)
+// 		{
+//             int server_fd = _server_fds[i];
+//             if (FD_ISSET(server_fd, &read_fds))
+// 			{
+// 				struct sockaddr_in client_address;
+//                 int addrlen = sizeof(client_address);
+//                 int new_socket = accept(server_fd, (struct sockaddr *)&client_address, (socklen_t*)&addrlen);
+//                 if (new_socket < 0) {
+//                     Logger::logMsg(ERROR, "Accept error");
+//                 }
+// 				else
+// 				{
+//                     client_fds.push_back(new_socket);
+// 					client_fd_to_port[new_socket] = server_fd_to_port[server_fd];
+//                     std::cout << "New connection on server port " << server_fd_to_port[server_fd] << ", client port " << ntohs(client_address.sin_port) << ", socket fd: " << new_socket << std::endl;
+//                 }
+//             }
+//         }
+
+//         // Check for incoming data on client sockets
+//         for (size_t i = 0; i < client_fds.size(); )
+// 		{
+//             if (FD_ISSET(client_fds[i], &read_fds))
+// 			{
+//                 int valread = read(client_fds[i], buffer, BUFF_SIZE);
+//                 if (valread <= 0)
+// 				{
+//                     std::cout << "Connection closed by client" << std::endl;
+//                     close(client_fds[i]);
+//                     client_fds.erase(client_fds.begin() + i);
+//                 }
+// 				else
+// 				{
+//                     client_buffers[i].append(buffer, valread);
+//                     if (isRequestComplete(client_buffers[i]))
+// 					{
+// 						/*
+// 							find the matching config
+// 						*/
+// 						int port = client_fd_to_port[client_fds[i]];
+// 						std::map<int, int>::iterator it = server_fd_to_port.find(port);
+
+						
+// 						std::cout << "server_fd_to_port.size(): " << server_fd_to_port.size() << std::endl;
+// 						for (std::map<int, int>::iterator it = server_fd_to_port.begin(); it != server_fd_to_port.end(); ++it)
+// 						{
+// 							std::cout << "it: " << it->first << " => " << it->second << std::endl;
+// 						}
+// 						// std::cout << "it: " << it->second << std::endl;
+
+// 						if (it == server_fd_to_port.end())
+// 						{
+// 							ServerParam config = configs[it->second];
+// 							std::cout << "config found" << std::endl;
+// 							Request request(config);
+// 							request.parseRequest(client_buffers[i].c_str());
+// 							RequestHandler handler(client_fds[i], request, config);
+// 							handler.handleRequest();
+// 							client_buffers[i].clear();
+//                         	// Request request(configs[j]);
+//                         	// request.parseRequest(client_buffers[i].c_str());
+
+//                         	// RequestHandler handler(client_fds[i], request, configs[j]);
+//                         	// handler.handleRequest();
+//                         	// client_buffers[i].clear();
+// 						}
+//                     ++i; // Only increment i if the client is not erased
+//                 	}
+//             	}
+// 			}
+// 			else
+// 			{
+//                 ++i; // Increment i if FD_ISSET is false
+//             }
+//         }
+//     }
+// }
+
+void Server::addServerSocketsToReadFds(int& max_fd)
+{
+    for (size_t i = 0; i < _server_fds.size(); i++)
+    {
+        FD_SET(_server_fds[i], &read_fds);
+        if (_server_fds[i] > max_fd)
+        {
+            max_fd = _server_fds[i];
+        }
+    }
+}
+
+void Server::addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd)
+{
+    for (size_t i = 0; i < client_fds.size(); i++)
+    {
+        if (client_fds[i] > 0)
+        {
+            FD_SET(client_fds[i], &read_fds);
+        }
+        if (client_fds[i] > max_fd)
+        {
+            max_fd = client_fds[i];
+        }
+    }
+}
+
+void Server::handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
+{
+    for (size_t i = 0; i < _server_fds.size(); i++)
+    {
+        int server_fd = _server_fds[i];
+        if (FD_ISSET(server_fd, &read_fds))
+        {
+            struct sockaddr_in client_address;
+            int addrlen = sizeof(client_address);
+            int new_socket = accept(server_fd, (struct sockaddr *)&client_address, (socklen_t*)&addrlen);
+            if (new_socket < 0)
+            {
+                Logger::logMsg(ERROR, "Accept error");
+            }
+            else
+            {
+                client_fds.push_back(new_socket);
+                client_fd_to_port[new_socket] = server_fd_to_port[server_fd];
+				Logger::logMsg(INFO, "New connection on server port %d, client port %d, socket fd: %d", server_fd_to_port[server_fd], ntohs(client_address.sin_port), new_socket);
+            }
+        }
+    }
+}
+
+void Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, char* buffer)
+{
+    for (size_t i = 0; i < client_fds.size(); )
+    {
+        if (FD_ISSET(client_fds[i], &read_fds))
+        {
+            int valread = read(client_fds[i], buffer, BUFF_SIZE);
+            if (valread <= 0)
+            {
+                Logger::logMsg(INFO, "Connection closed by client");
+                close(client_fds[i]);
+                client_fds.erase(client_fds.begin() + i);
+            }
+            else
+            {
+                client_buffers[client_fds[i]].append(buffer, valread);
+                if (isRequestComplete(client_buffers[client_fds[i]]))
+                {
+                    processRequest(client_fds[i], client_fd_to_port);
+                    ++i; // Only increment i if the client is not erased
+                }
+            }
+        }
+        else
+        {
+            ++i; // Increment i if FD_ISSET is false
+        }
+    }
+}
+
+void Server::processRequest(int client_fd, const std::map<int, int>& client_fd_to_port)
+{
+	int matching_config = -1;
+    int port = client_fd_to_port.at(client_fd);
+
+	for (size_t j = 0; j < configs.size(); j++)
+	{
+		if (configs[j].getPort() == port)
+		{
+			matching_config = j;
+		}
+	}
+
+	if (matching_config == -1)
+	{
+		Logger::logMsg(ERROR, "No matching config found for port %d", port);
+		return;
+	}
+
+	Request request(configs[matching_config]);
+	request.parseRequest(client_buffers[client_fd].c_str());
+	RequestHandler handler(client_fd, request, configs[matching_config]);
+	handler.handleRequest();
+	client_buffers[client_fd].clear();
+}
+
 
 void Server::run()
 {
-	int max_fd = _server_fd;
-	char buffer[BUFF_SIZE] = {0};
+    char buffer[BUFF_SIZE] = {0};
+    int activity;
+    int max_fd;
+    std::vector<int> client_fds;
+    std::map<int, int> client_fd_to_port;
 
-	while (true)
-	{
-		_handle_new_connections(max_fd, read_fds, _server_fd);
+    while (true)
+    {
+        FD_ZERO(&read_fds);
+        max_fd = 0;
 
-		// Loop through all clients to handle their requests
-		for (int i = 0; i <= max_fd; i++)
-		{
-			std::cout << "=============NEW REQUEST LOOP================" << std::endl;
-			if (FD_ISSET(i, &read_fds) && i != _server_fd)
-			{
-				memset(buffer, 0, sizeof(buffer));
-				int valread = read(i, buffer, sizeof(buffer));
+        // Add server sockets to read_fds
+        addServerSocketsToReadFds(max_fd);
 
-				if (valread <= 0)
-				{
-					if (valread == 0)
-					{
-						Logger::logMsg(INFO, "Client disconnected; SOCKET FD: %d", i);
-					}
-					else
-					{
-						Logger::logMsg(ERROR, "Read error; SOCKET FD: %d", i);
-					}
-					close(i);
-					FD_CLR(i, &read_fds);
-					client_buffers.erase(i); // Remove the buffer for this client
-					break;
-				}
+        // Add client sockets to read_fds
+        addClientSocketsToReadFds(client_fds, max_fd);
 
-				// Append data to the client's buffer
-				client_buffers[i].append(buffer, valread);
-				// std::cout << "Request in server core: " << client_buffers[i] << std::endl;
-				// std::cout << "Request in server core: " << client_buffers[i] << std::endl;
+        // Wait for activity on one of the sockets
+        activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+        if (activity < 0)
+        {
+            Logger::logMsg(ERROR, "Select error");
+            continue;
+        }
 
-				// Check if the request is complete
-				if (isRequestComplete(client_buffers[i]))
-				{
-					// Process the complete request
-					Request request(configs[0]);
-					std::cout << "==== REQUEST LENGTH BEFORE PARSING IT ==== " << client_buffers[i].size() << std::endl;
-					request.parseRequest(client_buffers[i].c_str());
-					std::cout << "==== REQUEST LENGTH AFTER PARSING IT ==== " << client_buffers[i].size() << std::endl;
+        // Handle new connections
+        handleNewConnections(client_fds, client_fd_to_port);
 
-					RequestHandler handler(i, request, configs[0]);
-					handler.handleRequest();
-
-					// Clear the buffer for this client after processing
-					client_buffers[i].clear();
-					std::cout << "Request complete" << std::endl;
-					break;
-				}
-				else
-				{
-					std::cout << "Request not complete" << std::endl;
-				}
-			}
-		}
-	}
+        // Handle incoming data on client sockets
+        handleClientData(client_fds, client_fd_to_port, buffer);
+    }
 }
-
-// void	Server::run()
-// {
-// 	int activity;
-// 	int max_fd = _server_fd;
-// 	int new_socket;
-// 	int valread;
-
-// 	bool is_running = true;
-// 	// char buffer[BUFF_SIZE] = {0};
-
-// 	while (is_running)
-// 	{
-// 		fd_set current_fds = read_fds;
-
-// 		activity = select(max_fd + 1, &current_fds, NULL, NULL, NULL);
-// 		if (activity < 0)
-// 			continue;
-
-// 		if (FD_ISSET(_server_fd, &current_fds))
-// 		{
-// 			new_socket = _accept_connection();
-// 			if (new_socket >= 0)
-// 			{
-// 				FD_SET(new_socket, &read_fds);
-// 				if (new_socket > max_fd)
-// 					max_fd = new_socket;
-
-// 				Logger::logMsg(INFO, "New connection accepted. SOCKET FD: %d", new_socket);
-// 			}
-// 		}
-// 	}
-// }

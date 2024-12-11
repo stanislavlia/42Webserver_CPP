@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestHandler.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/04 11:00:14 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/11 14:02:34 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,6 +147,7 @@ void	RequestHandler::_serveHtmlContent(int client_fd, const std::string& html_co
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
+	std::cout << "Response: " << response << std::endl;
 	send(client_fd, response.c_str(), response.length(), 0);
 }
 
@@ -192,7 +193,7 @@ void	RequestHandler::handleRequest()
 	std::cout << "Request URI: " << _request.getUri() << std::endl;
 	if (_request.getUri() == "/")
 	{
-		// std::cout << "ROOT URI" << std::endl;
+		std::cout << "ROOT URI" << std::endl;
 		request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();
 	}
 	else
@@ -254,7 +255,6 @@ void	RequestHandler::handleRequest()
 			for (size_t i = 0; i < indexed_locations.size(); ++i)
 			{
 				const std::string& location_root = indexed_locations[i].second.getRoot();
-				std::cout << "Trimmed URI: " << trimmed_uri << " location root: " << location_root << std::endl;
 				if (trimmed_uri == location_root)
 				{
 					matched_root = location_root;

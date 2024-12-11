@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/04 09:29:30 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/11 10:25:00 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,11 @@ int main(int ac, char **av)
     }
 
     // Run first server
-    struct sockaddr_in address;
+    // struct sockaddr_in address;
 
-    Server server(&address, servers);
+    // Server server(&address, servers);
+    Server server(servers);
+    std::cout << "Server created" << std::endl;
 
     try
     {

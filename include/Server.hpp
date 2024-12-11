@@ -10,21 +10,39 @@ class Server
 	private:
 		std::string _complete_request;
 		std::vector<ServerParam> configs;
-		int _port;
+		// int _port;
+		std::vector<int>	_ports;
+		std::map<int, int>server_fd_to_port;
 		// const char* _host;
 		std::string _host;
-		struct sockaddr_in  *_sock_address;
-		int  _server_fd;
+		// struct sockaddr_in  *_sock_address;
+		std::vector<struct sockaddr_in> _sock_address;
+		// int  _server_fd;
+		std::vector<int>	_server_fds;
 		fd_set  read_fds;
+		fd_set  write_fds;
 		const std::string _server_name; 
 
-		void    _create_server_socket();
-		void    _set_socket_options(int opt);
-		void    _setup_socketaddress();
-		void    _bind_socket();
-		void     _listen_socket();
-		int     _accept_connection();
-		void   _handle_new_connections(int& max_fd, fd_set& read_fds, int _server_fd);
+		// void    _create_server_socket();
+		int		_create_server_socket();
+		// void    _set_socket_options(int opt);
+		void	_set_socket_options(int opt, int server_fd);
+		// void    _setup_socketaddress();
+		void	_setup_socketaddress(int port, int server_fd);
+		// void    _bind_socket();
+		// void	_bind_socket(int server_fd);
+		// void     _listen_socket();
+		void	_listen_socket(int server_fd);
+		// int     _accept_connection();
+		int		_accept_connection(int server_fd);
+
+		// =======================================
+
+		void  	addServerSocketsToReadFds(int& max_fd);
+		void  	addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd);
+		void  	handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port);
+		void  	handleClientData(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, char* buffer);
+		void	processRequest(int client_fd, const std::map<int, int>& client_fd_to_port);
 
 		// std::string render_html(const std::string& path);
 		// void        respond_with_html(int client_fd, const std::string& path, int status_code, const std::string& status_message);
@@ -36,7 +54,8 @@ class Server
 		
 	
 	public:
-		Server(struct sockaddr_in  *_sock_address, const std::vector<ServerParam>& server_param);
+		// Server(struct sockaddr_in  *_sock_address, const std::vector<ServerParam>& server_param);
+		Server(const std::vector<ServerParam>& server_param);
 		Server();
 		~Server();
 
