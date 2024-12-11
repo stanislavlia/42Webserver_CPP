@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:08:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/11 10:57:59 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/11 15:12:31 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,37 +53,37 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 	return (html.str());
 }
 
-void	RequestHandler::_handleDirectoryListing(int client_fd, const std::string& path, const std::string& uri)
+void	RequestHandler::_handleDirectoryListing(const std::string& path, const std::string& uri)
 {
 	std::string html_content = _generateDirectoryListing(path, uri);
-	_serveHtmlContent(client_fd, html_content, 200, "OK");
+	_serveHtmlContent(html_content, 200, "OK");
 }
 
 
-void	RequestHandler::_handleRootDirectoryRequest(int client_fd, const std::string& rootDir, const std::string& uri, const Location& location)
+void	RequestHandler::_handleRootDirectoryRequest(const std::string& rootDir, const std::string& uri, const Location& location)
 {
 	if (location.getIndex().empty() && location.getAutoIndex() == 1)
 	{
-		_handleDirectoryListing(client_fd, rootDir, uri);
+		_handleDirectoryListing(rootDir, uri);
 	}
 	else if (location.getIndex().empty() && location.getAutoIndex() == 0)
 	{
 		try
 		{
-			_respond_with_error(client_fd, 403, "Forbidden", location);
+			_respond_with_error(403, "Forbidden", location);
 		}
 		catch (std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 403);
+			_DefaultErrorPage(403);
 		}
 	}
 	else
 	{
-		_respond_with_html(client_fd, rootDir + location.getIndex(), 200, "OK");
+		_respond_with_html(rootDir + location.getIndex(), 200, "OK");
 	}
 }
 
-void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::string& full_path, const std::string& uri, const Location& location)
+void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path, const std::string& uri, const Location& location)
 {
 	struct stat path_stat;
 	if (stat(full_path.c_str(), &path_stat) == 0)
@@ -92,17 +92,17 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 		{
 			if (location.getAutoIndex() == 1)
 			{
-				_handleDirectoryListing(client_fd, full_path, uri);
+				_handleDirectoryListing(full_path, uri);
 			}
 			else
 			{
 				try
 				{
-					_respond_with_error(client_fd, 403, "Forbidden", location);
+					_respond_with_error(403, "Forbidden", location);
 				}
 				catch (std::exception& e)
 				{
-					_DefaultErrorPage(client_fd, 403);
+					_DefaultErrorPage(403);
 				}
 			}
 		}
@@ -110,16 +110,16 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 		{
 			std::cout << "IS REG" << std::endl;
 			if (access(full_path.c_str(), R_OK) == 0)
-				_respond_with_html(client_fd, full_path.c_str(), 200, "OK");
+				_respond_with_html(full_path.c_str(), 200, "OK");
 			else
 			{
 				try
 				{
-					_respond_with_error(client_fd, 403, "Forbidden", location);
+					_respond_with_error(403, "Forbidden", location);
 				}
 				catch (std::exception& e)
 				{
-					_DefaultErrorPage(client_fd, 403);
+					_DefaultErrorPage(403);
 				}
 			}
 		}
@@ -127,11 +127,11 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 		{
 			try
 			{
-				_respond_with_error(client_fd, 404, "Not Found", location);
+				_respond_with_error(404, "Not Found", location);
 			}
 			catch (std::exception& e)
 			{
-				_DefaultErrorPage(client_fd, 404);
+				_DefaultErrorPage(404);
 			}
 			Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
 		}
@@ -139,11 +139,11 @@ void	RequestHandler::_handleFileOrDirectoryRequest(int client_fd, const std::str
 	else
 	{
 		try {
-			_respond_with_error(client_fd, 404, "Not Found", location);
+			_respond_with_error(404, "Not Found", location);
 		}
 		catch (std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 404);
+			_DefaultErrorPage(404);
 		}
 		Logger::logMsg(ERROR, "No page FOUND %d - code", 404);
 	}

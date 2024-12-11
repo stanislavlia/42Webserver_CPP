@@ -22,7 +22,9 @@ class Server
 		std::vector<int>	_server_fds;
 		fd_set  read_fds;
 		fd_set  write_fds;
-		const std::string _server_name; 
+		const std::string _server_name;
+		int	matching_config;
+		std::string response_to_client;
 
 		// void    _create_server_socket();
 		int		_create_server_socket();
@@ -41,9 +43,11 @@ class Server
 
 		void  	addServerSocketsToReadFds(int& max_fd);
 		void  	addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd);
+		void	addClientSocketsToWriteFds(const std::vector<int>& client_fds, int& max_fd);
 		void  	handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port);
 		void  	handleClientData(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, char* buffer);
 		void	processRequest(int client_fd, const std::map<int, int>& client_fd_to_port);
+		void	handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port);
 
 		// std::string render_html(const std::string& path);
 		// void        respond_with_html(int client_fd, const std::string& path, int status_code, const std::string& status_message);

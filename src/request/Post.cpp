@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/04 12:09:35 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/11 15:13:29 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,8 @@ std::string RequestHandler::_getExactBody(const std::string& body, int content_l
     return exact_body;
 }
 
-void	RequestHandler::_ParseMultipartFormData(int client_fd, const std::string& body, const std::string& boundary_delimiter, const Location& location)
+void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std::string& boundary_delimiter, const Location& location)
 {
-	(void)client_fd;
 	std::cout << "==== IN MULTIPART FORM DATA 2 ====" << std::endl;
 	// Split the body into parts based on the boundary delimiter\n";
 	std::vector<std::string> parts = _request.split(body, "--" + boundary_delimiter);
@@ -111,7 +110,7 @@ void	RequestHandler::_ParseMultipartFormData(int client_fd, const std::string& b
 					outfile.write(content.c_str(), content.size());
 					outfile.close();
 					std::cout << "File uploaded successfully" << std::endl;
-					_serveHtmlContent(client_fd, "<h1>File uploaded successfully</h1>", 200, "OK");
+					_serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
 				}
 				else
 				{
@@ -122,7 +121,7 @@ void	RequestHandler::_ParseMultipartFormData(int client_fd, const std::string& b
 	}
 }
 
-void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDir, const Location& location)
+void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Location& location)
 {
 	std::istringstream iss(_request.getHeaders().at("Content-Length"));
 	int	content_length;
@@ -136,11 +135,11 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 	{
 		try 
 		{
-			_handleInvalidRequest(client_fd, 411, location);	
+			_handleInvalidRequest(411, location);	
 		}
 		catch (const std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 411);
+			_DefaultErrorPage(411);
 		}
 	}
 	// check if the content length is within acceptable limits
@@ -149,11 +148,11 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 		std::cout << "Content-Length is too large" << std::endl;
 		try 
 		{
-			_handleInvalidRequest(client_fd, 413, location);	
+			_handleInvalidRequest(413, location);	
 		}
 		catch (const std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 413);
+			_DefaultErrorPage(413);
 		}
 	}
 	// check the content type header exists
@@ -161,11 +160,11 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 	{
 		try 
 		{
-			_handleInvalidRequest(client_fd, 400, location);	
+			_handleInvalidRequest(400, location);	
 		}
 		catch (const std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 400);
+			_DefaultErrorPage(400);
 		}
 	}
 	if (_request.getHeaders().at("Content-Type").find("multipart/form-data") != std::string::npos)
@@ -178,7 +177,7 @@ void	RequestHandler::_handlePostRequest(int client_fd, const std::string& rootDi
 		// std::cout << "body: " << body << std::endl;
 		std::cout << "Header " << _request.getHeaders().at("Content-Type") << std::endl;
 
-		_ParseMultipartFormData(client_fd, body, boundary_delimiter, location);
+		_ParseMultipartFormData(body, boundary_delimiter, location);
 	}
 	// std::cout << "BODY request: " << _request.getBody() << "End of body ------------" << std::endl;
 	//read the body of the request based on the content length and parse it

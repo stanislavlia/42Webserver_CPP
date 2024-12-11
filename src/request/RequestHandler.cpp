@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/11 14:02:34 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/11 15:14:18 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,17 +38,22 @@ RequestHandler::~RequestHandler()
 
 // END CANONICAL FORM
 
-void	RequestHandler::_DefaultErrorPage(int client_fd, int status_code)
+std::string	RequestHandler::getResponse() const
+{
+	return response;
+}
+
+void	RequestHandler::_DefaultErrorPage(int status_code)
 {
 	std::stringstream status_code_ss;
 	status_code_ss << status_code;
 
-	std::string response = "HTTP/1.1 " + status_code_ss.str() + " ""\r\n"
+	response = "HTTP/1.1 " + status_code_ss.str() + " ""\r\n"
 						   "Content-Type: text/html\r\n"
 						   "Content-Length: 0\r\n"
 						   "\r\n";
 
-	send(client_fd, response.c_str(), response.length(), 0);
+	// send(client_fd, response.c_str(), response.length(), 0);
 }
 
 std::string	RequestHandler::_render_html(const std::string& path)
@@ -66,7 +71,7 @@ std::string	RequestHandler::_render_html(const std::string& path)
 	return stream_buffer.str();
 }
 
-void RequestHandler::_respond_with_error(int socket, int status_code, const std::string& status_message, const Location& location)
+void RequestHandler::_respond_with_error(int status_code, const std::string& status_message, const Location& location)
 {
 	std::string path = location.getErrorPage().at(status_code);
 
@@ -78,16 +83,16 @@ void RequestHandler::_respond_with_error(int socket, int status_code, const std:
 	std::stringstream status_code_ss;
 	status_code_ss << status_code;
 
-	std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+	response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
 						   "Content-Type: text/html\r\n"
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
-	send(socket, response.c_str(), response.length(), 0);
+	// send(socket, response.c_str(), response.length(), 0);
 }
 
 
-void	RequestHandler::_respond_with_html(int socket, const std::string& path, int status_code, const std::string& status_message)
+void	RequestHandler::_respond_with_html(const std::string& path, int status_code, const std::string& status_message)
 {
 	std::string html_content = _render_html(path); //need to add exceptions
 
@@ -97,25 +102,25 @@ void	RequestHandler::_respond_with_html(int socket, const std::string& path, int
 	std::stringstream status_code_ss;
 	status_code_ss << status_code;
 
-	std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+	response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
 						   "Content-Type: text/html\r\n"
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
-	send(socket, response.c_str(), response.length(), 0);
+	// send(socket, response.c_str(), response.length(), 0);
 }
 
-void	RequestHandler::_handleInvalidRequest(int client_fd, int validation_code, const Location& location)
+void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& location)
 {
 	if (validation_code == 1 || validation_code == 3)
 	{
 		// 400 Bad Request
 		try {
-			_respond_with_error(client_fd, 400, "Bad Request", location);
+			_respond_with_error(400, "Bad Request", location);
 		}
 		catch (std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 400);
+			_DefaultErrorPage(400);
 		}
 		Logger::logMsg(ERROR, "Bad Request %d - code", 400);
 	}
@@ -124,17 +129,17 @@ void	RequestHandler::_handleInvalidRequest(int client_fd, int validation_code, c
 		// 405 Method Not Allowed
 		try
 		{
-			_respond_with_error(client_fd, 405, "Method Not Allowed", location);
+			_respond_with_error(405, "Method Not Allowed", location);
 		}
 		catch (std::exception& e)
 		{
-			_DefaultErrorPage(client_fd, 405);
+			_DefaultErrorPage(405);
 		}
 		Logger::logMsg(ERROR, "Method Not Allowed %d - code", 405);
 	}
 }
 
-void	RequestHandler::_serveHtmlContent(int client_fd, const std::string& html_content, int status_code, const std::string& status_message)
+void	RequestHandler::_serveHtmlContent(const std::string& html_content, int status_code, const std::string& status_message)
 {
 	std::stringstream ss;
 	ss << html_content.length();
@@ -142,13 +147,12 @@ void	RequestHandler::_serveHtmlContent(int client_fd, const std::string& html_co
 	std::stringstream status_code_ss;
 	status_code_ss << status_code;
 
-	std::string response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
+	response = "HTTP/1.1 " + status_code_ss.str() + " " + status_message + "\r\n"
 						   "Content-Type: text/html\r\n"
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
-	std::cout << "Response: " << response << std::endl;
-	send(client_fd, response.c_str(), response.length(), 0);
+	// send(client_fd, response.c_str(), response.length(), 0);
 }
 
 void	restore_locations_order(std::vector<Location>& locations, std::vector<std::pair<size_t, Location*> >& indexed_locations)
@@ -268,7 +272,7 @@ void	RequestHandler::handleRequest()
 		if (!location_found)
 		{
 			std::cerr << "Error: No matching location found for URI: " << request_uri << std::endl;
-			_respond_with_error(_socket, 404, "Not Found", matched_location);
+			_respond_with_error(404, "Not Found", matched_location);
 			return;
 		}
 	}
@@ -291,11 +295,11 @@ void	RequestHandler::handleRequest()
 	if (!method_allowed)
 	{
 		try {
-			_respond_with_error(_socket, 405, "Method Not Allowed", matched_location);
+			_respond_with_error(405, "Method Not Allowed", matched_location);
 		}
 		catch (std::exception& e)
 		{
-			_DefaultErrorPage(_socket, 405);
+			_DefaultErrorPage(405);
 		}
 		return;
 	}
@@ -308,23 +312,23 @@ void	RequestHandler::handleRequest()
 	{
 		std::cout << "Handle Request >POST< : " << request_uri << std::endl;
 		// Handle POST request
-		_handlePostRequest(_socket, full_path, matched_location);
+		_handlePostRequest(full_path, matched_location);
 	}
 	else if (request_method == "DELETE")
 	{
 		std::cout << "Handle Request >DELETE< : " << request_uri << std::endl;
 		// Handle DELETE request
-		_handleDeleteRequest(_socket, full_path, matched_location);
+		_handleDeleteRequest(full_path, matched_location);
 	}
 	else if (request_method == "GET" && request_uri == "/index.html")
 	{
 		std::cout << "Handle Request >Root< : " << request_uri << std::endl;
-		_handleRootDirectoryRequest(_socket, matched_root, request_uri, matched_location);
+		_handleRootDirectoryRequest(matched_root, request_uri, matched_location);
 	}
 	else if (request_method == "GET")
 	{
 		std::cout << "Handle Request >Request< : " << request_uri << std::endl;
 		// _handleSpecificUriRequest(_socket, matched_root, request_uri);
-		_handleFileOrDirectoryRequest(_socket, full_path, request_uri, matched_location);
+		_handleFileOrDirectoryRequest(full_path, request_uri, matched_location);
 	}
 }

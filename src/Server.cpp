@@ -56,7 +56,7 @@ bool	isRequestComplete(const std::string& request)
 	return true; // Request is complete
 }
 
-void Server::addServerSocketsToReadFds(int& max_fd)
+void	Server::addServerSocketsToReadFds(int& max_fd)
 {
     for (size_t i = 0; i < _server_fds.size(); i++)
     {
@@ -68,7 +68,7 @@ void Server::addServerSocketsToReadFds(int& max_fd)
     }
 }
 
-void Server::addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd)
+void	Server::addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd)
 {
     for (size_t i = 0; i < client_fds.size(); i++)
     {
@@ -83,7 +83,22 @@ void Server::addClientSocketsToReadFds(const std::vector<int>& client_fds, int& 
     }
 }
 
-void Server::handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
+void	Server::addClientSocketsToWriteFds(const std::vector<int>& client_fds, int& max_fd)
+{
+	for (size_t i = 0; i < client_fds.size(); i++)
+	{
+		if (client_fds[i] > 0)
+		{
+			FD_SET(client_fds[i], &write_fds);
+		}
+		if (client_fds[i] > max_fd)
+		{
+			max_fd = client_fds[i];
+		}
+	}
+}
+
+void	Server::handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
 {
     for (size_t i = 0; i < _server_fds.size(); i++)
     {
@@ -107,7 +122,7 @@ void Server::handleNewConnections(std::vector<int>& client_fds, std::map<int, in
     }
 }
 
-void Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, char* buffer)
+void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, char* buffer)
 {
     for (size_t i = 0; i < client_fds.size(); )
     {
@@ -137,9 +152,9 @@ void Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
     }
 }
 
-void Server::processRequest(int client_fd, const std::map<int, int>& client_fd_to_port)
+void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_to_port)
 {
-	int matching_config = -1;
+	// int matching_config = -1;
     int port = client_fd_to_port.at(client_fd);
 
 	for (size_t j = 0; j < configs.size(); j++)
@@ -160,20 +175,90 @@ void Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 	request.parseRequest(client_buffers[client_fd].c_str());
 	RequestHandler handler(client_fd, request, configs[matching_config]);
 	handler.handleRequest();
+	response_to_client = handler.getResponse();
 	client_buffers[client_fd].clear();
 }
 
+// void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
+// {
+// 	(void)client_fd_to_port;
+// 	for (size_t i = 0; i < client_fds.size();)
+// 	{
+//         if (FD_ISSET(client_fds[i], &write_fds))
+// 		{
+//             std::cout << "Socket " << client_fds[i] << " is ready to write" << std::endl;
+// 			send(client_fds[i], response_to_client.c_str(), response_to_client.length(), 0);
 
-void Server::run()
+//             ++i; // Only increment i if the client is not erased
+//         } else {
+//             ++i; // Increment i if FD_ISSET is false
+//         }
+//     }
+// }
+
+void Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
+{
+	(void)client_fd_to_port;
+    // Maintain a map to keep track of how much data has been sent to each client
+    static std::map<int, size_t> bytes_sent;
+
+    for (size_t i = 0; i < client_fds.size();) {
+        int client_fd = client_fds[i];
+        if (FD_ISSET(client_fd, &write_fds)) {
+            std::cout << "Socket " << client_fd << " is ready to write" << std::endl;
+
+            // Track the total length of the response
+            size_t total_length = response_to_client.length();
+
+            // Initialize bytes_sent for this client if it doesn't exist
+            if (bytes_sent.find(client_fd) == bytes_sent.end()) {
+                bytes_sent[client_fd] = 0;
+            }
+
+            // Calculate the remaining data to be sent
+            size_t remaining_data = total_length - bytes_sent[client_fd];
+            const char* data_to_send = response_to_client.c_str() + bytes_sent[client_fd];
+
+            // Send remaining data
+            ssize_t sent = send(client_fd, data_to_send, remaining_data, 0);
+            if (sent < 0) {
+                Logger::logMsg(ERROR, "Send error");
+                close(client_fd);
+                client_fds.erase(client_fds.begin() + i);
+                bytes_sent.erase(client_fd);
+            } else {
+                bytes_sent[client_fd] += sent;
+
+                // Check if the entire response has been sent
+                if (bytes_sent[client_fd] >= total_length) {
+                    std::cout << "Response sent to socket " << client_fd << std::endl;
+                    bytes_sent.erase(client_fd);
+                    close(client_fd);`
+                    client_fds.erase(client_fds.begin() + i);
+				}
+                else
+				{
+                    ++i; // Increment i if the client is not erased
+                }
+            }
+        } else {
+            ++i; // Increment i if FD_ISSET is false
+        	}
+    	}
+}
+
+void	Server::run()
 {
     char buffer[BUFF_SIZE] = {0};
     int activity;
     int max_fd;
     std::vector<int> client_fds;
     std::map<int, int> client_fd_to_port;
+	matching_config = -1;
 
     while (true)
     {
+		FD_ZERO(&write_fds);
         FD_ZERO(&read_fds);
         max_fd = 0;
 
@@ -182,9 +267,10 @@ void Server::run()
 
         // Add client sockets to read_fds
         addClientSocketsToReadFds(client_fds, max_fd);
+		addClientSocketsToWriteFds(client_fds, max_fd);
 
         // Wait for activity on one of the sockets
-        activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
+        activity = select(max_fd + 1, &read_fds, &write_fds, NULL, NULL);
         if (activity < 0)
         {
             Logger::logMsg(ERROR, "Select error");
@@ -196,5 +282,7 @@ void Server::run()
 
         // Handle incoming data on client sockets
         handleClientData(client_fds, client_fd_to_port, buffer);
+
+		handleWritableClientSockets(client_fds, client_fd_to_port);
     }
 }
