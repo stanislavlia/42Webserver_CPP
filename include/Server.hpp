@@ -10,6 +10,7 @@ class Server
 	private:
 		std::string _complete_request;
 		std::vector<ServerParam> configs;
+		std::map<int, std::string> client_buffers;
 		// int _port;
 		std::vector<int>	_ports;
 		std::map<int, int>server_fd_to_port;
