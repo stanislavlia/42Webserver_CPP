@@ -50,17 +50,6 @@ void    Server::_set_socket_options(int opt, int server_fd)
 	}
 }
 
-// void	Server::_bind_socket(int server_fd)
-// {
-// 	// std::cout << "==========BIND SOCKET============" << std::endl;
-
-// 	if (bind(server_fd, (struct sockaddr *)_sock_address, sizeof(*_sock_address)) < 0)
-// 	{
-// 		close(server_fd);
-// 		throw SocketHandlingException("Failed to bind");	
-// 	}
-// }
-
 void	Server::_setup_socketaddress(int port, int server_fd)
 {
 	// std::cout << "==========SETUP SOCKET ADDRESS============" << std::endl;
@@ -100,9 +89,6 @@ void    Server::setup_server()
 	{
 		throw SocketHandlingException("No ports to listen on");
 	}
-
-    // clear the set and add all server sockets
-    // FD_ZERO(&read_fds);
 
 	for (size_t i = 0; i < _ports.size(); i++)
 	{

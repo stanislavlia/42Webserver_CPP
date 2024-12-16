@@ -30,7 +30,6 @@ bool	isRequestComplete(const std::string& request)
 		}
 	}
 
-
 	// Check for Content-Length header
 	size_t content_length_pos = headers.find("Content-Length: ");
 	if (content_length_pos != std::string::npos)
@@ -140,8 +139,9 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
                 client_buffers[client_fds[i]].append(buffer, valread);
                 if (isRequestComplete(client_buffers[client_fds[i]]))
                 {
-                    processRequest(client_fds[i], client_fd_to_port);
-                    ++i; // Only increment i if the client is not erased
+
+                        processRequest(client_fds[i], client_fd_to_port);
+                        ++i; // Only increment i if the client is not erased
                 }
             }
         }
@@ -179,39 +179,26 @@ void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 	client_buffers[client_fd].clear();
 }
 
-// void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
-// {
-// 	(void)client_fd_to_port;
-// 	for (size_t i = 0; i < client_fds.size();)
-// 	{
-//         if (FD_ISSET(client_fds[i], &write_fds))
-// 		{
-//             std::cout << "Socket " << client_fds[i] << " is ready to write" << std::endl;
-// 			send(client_fds[i], response_to_client.c_str(), response_to_client.length(), 0);
-
-//             ++i; // Only increment i if the client is not erased
-//         } else {
-//             ++i; // Increment i if FD_ISSET is false
-//         }
-//     }
-// }
-
 void Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port)
 {
 	(void)client_fd_to_port;
     // Maintain a map to keep track of how much data has been sent to each client
     static std::map<int, size_t> bytes_sent;
 
-    for (size_t i = 0; i < client_fds.size();) {
+
+    // std::cout << "Before to send" << std::endl;
+    for (size_t i = 0; i < client_fds.size();)
+	{
         int client_fd = client_fds[i];
-        if (FD_ISSET(client_fd, &write_fds)) {
-            std::cout << "Socket " << client_fd << " is ready to write" << std::endl;
+        if (FD_ISSET(client_fd, &write_fds))
+		{
 
             // Track the total length of the response
             size_t total_length = response_to_client.length();
 
             // Initialize bytes_sent for this client if it doesn't exist
-            if (bytes_sent.find(client_fd) == bytes_sent.end()) {
+            if (bytes_sent.find(client_fd) == bytes_sent.end())
+			{
                 bytes_sent[client_fd] = 0;
             }
 
@@ -220,20 +207,24 @@ void Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
             const char* data_to_send = response_to_client.c_str() + bytes_sent[client_fd];
 
             // Send remaining data
+            // std::cout << "Sending data to client" << std::endl;
             ssize_t sent = send(client_fd, data_to_send, remaining_data, 0);
-            if (sent < 0) {
+            if (sent < 0)
+			{
                 Logger::logMsg(ERROR, "Send error");
                 close(client_fd);
                 client_fds.erase(client_fds.begin() + i);
                 bytes_sent.erase(client_fd);
-            } else {
+            }
+			else
+			{
                 bytes_sent[client_fd] += sent;
 
                 // Check if the entire response has been sent
-                if (bytes_sent[client_fd] >= total_length) {
-                    std::cout << "Response sent to socket " << client_fd << std::endl;
+                if (bytes_sent[client_fd] >= total_length)
+				{
                     bytes_sent.erase(client_fd);
-                    close(client_fd);`
+                    close(client_fd);
                     client_fds.erase(client_fds.begin() + i);
 				}
                 else
@@ -241,10 +232,12 @@ void Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
                     ++i; // Increment i if the client is not erased
                 }
             }
-        } else {
+        }
+		else
+		{
             ++i; // Increment i if FD_ISSET is false
-        	}
-    	}
+        }
+    }
 }
 
 void	Server::run()

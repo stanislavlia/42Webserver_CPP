@@ -6,11 +6,23 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/11 15:13:29 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/13 12:00:44 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "RequestHandler.hpp"
+
+void	RequestHandler::_handleErrorPage(int status_code, const Location& location)
+{
+	try 
+	{
+		_handleInvalidRequest(status_code, location);	
+	}
+	catch (const std::exception& e)
+	{
+		_DefaultErrorPage(status_code);
+	}
+}
 
 std::string RequestHandler::_ExtractBoundaryDelimiter()
 {
@@ -133,6 +145,7 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 	std::cout << "content type header: " << _request.getHeaders().at("Content-Type") << std::endl;
 	if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
 	{
+		// _handleErrorPage(411, location);
 		try 
 		{
 			_handleInvalidRequest(411, location);	
@@ -145,6 +158,7 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 	// check if the content length is within acceptable limits
 	else if (content_length > _config.getClientMaxBodySize())
 	{
+		// _handleErrorPage(413, location);
 		std::cout << "Content-Length is too large" << std::endl;
 		try 
 		{
@@ -158,6 +172,7 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 	// check the content type header exists
 	else if (_request.getHeaders().find("Content-Type") == _request.getHeaders().end())
 	{
+		// _handleErrorPage(400, location);
 		try 
 		{
 			_handleInvalidRequest(400, location);	
