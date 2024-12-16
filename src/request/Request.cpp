@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/13 14:23:33 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/16 12:54:11 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,11 +118,9 @@ std::vector<std::string>    Request::split(const std::string& str, const std::st
 
 void	Request::parseHeaders(const std::string& headers)
 {
-    // std::cout << "In parseHeaders" << std::endl;
     std::vector<std::string> headersList = split(headers, "\n");
     for (size_t i = 0; i < headersList.size(); i++)
     {
-        // std::cout << "headersList.at(i): " << headersList.at(i) << std::endl;
         std::vector<std::string> header = split(headersList.at(i), ": ");
         if (header.size() == 2)
         {
@@ -141,7 +139,6 @@ void    Request::parseRequest(const std::string& rawRequest)
     std::istringstream requestStream(rawRequest);
     std::string line;
 
-    // std::cout << "===== RAW REQUEST SIZE =====" << rawRequest.size() << std::endl;
     // Parse request line
     if (std::getline(requestStream, line))
     {
@@ -177,8 +174,6 @@ void    Request::parseRequest(const std::string& rawRequest)
             requestStream.read(&body[0], contentLength);
             std::string bodyStr(body.begin(), body.end());
             parseBody(bodyStr);
-            // std::cout << "==== BODY SIZE IN PARSE REQUEST: " << _body.size() << std::endl;
-            // std::cout << "==== BITS BODY SIZE IN PARSE REQUEST: " << body.size() << std::endl;
         }
     }
     validateRequest();

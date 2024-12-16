@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:08:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/13 14:25:33 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/16 12:52:06 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 	html << "<ul>";
 
 	DIR* dir = opendir(path.c_str());
-	// std::cout << "PATH: " << path << std::endl;
 	if (dir)
 	{
 		struct dirent* entry;
@@ -58,30 +57,6 @@ void	RequestHandler::_handleDirectoryListing(const std::string& path, const std:
 	std::string html_content = _generateDirectoryListing(path, uri);
 	_serveHtmlContent(html_content, 200, "OK");
 }
-
-
-// void	RequestHandler::_handleRootDirectoryRequest(const std::string& rootDir, const std::string& uri, const Location& location)
-// {
-// 	if (location.getIndex().empty() && location.getAutoIndex() == 1)
-// 	{
-// 		_handleDirectoryListing(rootDir, uri);
-// 	}
-// 	else if (location.getIndex().empty() && location.getAutoIndex() == 0)
-// 	{
-// 		try
-// 		{
-// 			_respond_with_error(403, "Forbidden", location);
-// 		}
-// 		catch (std::exception& e)
-// 		{
-// 			_DefaultErrorPage(403);
-// 		}
-// 	}
-// 	else
-// 	{
-// 		_respond_with_html(rootDir + location.getIndex(), 200, "OK");
-// 	}
-// }
 
 void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path, const std::string& uri, const Location& location)
 {

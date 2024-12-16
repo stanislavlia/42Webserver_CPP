@@ -57,7 +57,6 @@ void	RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
 
 bool	RequestHandler::_createPipe(int pipefd[2])
 {
-    std::cout << "========= PIPE =============" << std::endl;
     if (pipe(pipefd) == -1)
     {
         Logger::logMsg(ERROR, "Pipe error");
@@ -68,7 +67,6 @@ bool	RequestHandler::_createPipe(int pipefd[2])
 
 void	RequestHandler::_handleChildProcess(int pipefd[2], const std::string& request_uri)
 {
-    std::cout << "========= CHILD =============" << std::endl;
     close(pipefd[0]);
 
     std::string copy_full_path, query_string;
@@ -85,7 +83,6 @@ void	RequestHandler::_handleChildProcess(int pipefd[2], const std::string& reque
 void	RequestHandler::_handleParentProcess(int pipefd[2], pid_t pid, const std::string& request_uri, const Location& matched_location)
 {
 	(void)request_uri;
-    // std::cout << "========= PARENT =============" << std::endl;
     close(pipefd[1]);
 
     struct sigaction sa;
@@ -96,22 +93,15 @@ void	RequestHandler::_handleParentProcess(int pipefd[2], pid_t pid, const std::s
 
     alarm(5);
 
-    std::cout << "========= PARENT =============" << std::endl;
     char buffer[BUFF_SIZE];
     int bytes_read;
 
-    std::cout << "========= READ =============" << std::endl;
     while ((bytes_read = read(pipefd[0], buffer, BUFF_SIZE)) > 0)
         response.append(buffer, bytes_read);
 
-    std::cout << "========= CLOSE =============" << std::endl;
     close(pipefd[0]);
 
     int exit_status = _waitForChildProcess(pid);
-    std::cout << "exit status: " << exit_status << std::endl;
-    std::cout << "========= RESPONSE =============" << std::endl;
-	// _waitForChildProcess(pid);
-    // std::cout << "========= RESPONSE =============" << std::endl;
 
     alarm(0);
 
@@ -167,10 +157,6 @@ int	RequestHandler::_waitForChildProcess(pid_t pid)
             Logger::logMsg(ERROR, "CGI script exited with status %d", exit_status);
         return exit_status;
     }
-    // else if (WIFSIGNALED(status))
-    // {
-
-    // }
     else
     {
         Logger::logMsg(ERROR, "CGI script did not exit normally");
@@ -187,7 +173,6 @@ bool	RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 	if (pos != std::string::npos)
 	{
 		file_path = request_uri.substr(0, pos);
-		// std::cout << "File path: " << file_path << std::endl;
 	}
 	else
 	{

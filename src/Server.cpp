@@ -45,8 +45,6 @@ bool	isRequestComplete(const std::string& request)
 		// Check if the entire body has been received
 		size_t body_start = headers_end + 4;
 		size_t body_length = request.size() - body_start;
-		// std::cout << "Body length: " << body_length << std::endl;
-		// std::cout << "Content length: " << content_length << std::endl;
 		if (body_length < content_length)
 		{
 			return false; // Body is not complete
@@ -207,7 +205,6 @@ void Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
             const char* data_to_send = response_to_client.c_str() + bytes_sent[client_fd];
 
             // Send remaining data
-            // std::cout << "Sending data to client" << std::endl;
             ssize_t sent = send(client_fd, data_to_send, remaining_data, 0);
             if (sent < 0)
 			{
