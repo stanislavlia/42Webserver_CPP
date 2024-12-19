@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:55:23 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/19 10:01:57 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,7 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 				std::ofstream	outfile(filePath.c_str());
 				if (outfile)
 				{
+					std::cout << "Writing to file: " << filePath << std::endl;
 					outfile.write(content.c_str(), content.size());
 					outfile.close();
 					std::cout << "File uploaded successfully" << std::endl;
@@ -165,6 +166,7 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 		std::string	boundary_delimiter =_ExtractBoundaryDelimiter();
 		std::string body = _getExactBody(_request.getBody(), content_length);
 
+		std::cout << "Parse multipart form data" << std::endl;
 		_ParseMultipartFormData(body, boundary_delimiter, location);
 	}
 }

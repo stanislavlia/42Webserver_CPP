@@ -6,7 +6,7 @@
 /*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/19 09:37:06 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/19 12:59:27 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,7 @@ void	RequestHandler::handleRequest()
 {
 	std::string request_uri;
 
-
+	std::cout << "==== request uri =====" << _request.getUri() << std::endl;
 	if (_request.getUri() == "/")
 		request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();
 	else
@@ -306,6 +306,7 @@ void	RequestHandler::handleRequest()
 	}
 	else if (request_method == "POST")
 	{
+		std::cout << "Handling POST request" << std::endl;
 		_handlePostRequest(full_path, matched_location);
 	}
 	else if (request_method == "DELETE")
