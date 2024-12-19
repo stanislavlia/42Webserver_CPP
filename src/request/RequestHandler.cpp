@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestHandler.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:51:49 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/19 09:37:06 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,6 +193,7 @@ void	restoreOriginalOrder(std::vector<std::pair<size_t, Location> >& indexed_loc
 void	RequestHandler::handleRequest()
 {
 	std::string request_uri;
+
 
 	if (_request.getUri() == "/")
 		request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();

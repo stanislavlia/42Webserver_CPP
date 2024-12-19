@@ -133,7 +133,7 @@ void	RequestHandler::_parseRequestUri(const std::string& request_uri, std::strin
 void	RequestHandler::_prepareAndExecuteCgiScript(const std::string& full_path, const std::vector<std::string>& args)
 {
     std::vector<char*> exec_args;
-    exec_args.push_back(const_cast<char*>("/usr/bin/python3"));
+    exec_args.push_back(const_cast<char*>("/usr/bin/env/python3"));
     exec_args.push_back(const_cast<char*>(full_path.c_str()));
     for (size_t i = 0; i < args.size(); ++i)
         exec_args.push_back(const_cast<char*>(args[i].c_str()));
