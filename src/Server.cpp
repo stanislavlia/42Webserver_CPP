@@ -6,7 +6,7 @@
 #include <dirent.h>
 
 // Function to check if the request is complete
-bool isRequestComplete(const std::string& request) {
+bool	isRequestComplete(const std::string& request) {
 	// Check for the end of headers marker
 	size_t headers_end = request.find("\r\n\r\n");
 	if (headers_end == std::string::npos) {
@@ -179,7 +179,7 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 				else
 				{
 					Logger::logMsg(ERROR, "Request is not complete");
-					// ++i; // Increment i if the request is not complete
+					++i; // Increment i if the request is not complete
 				}
 			}
 		}
