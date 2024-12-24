@@ -9,7 +9,7 @@ INC			:= -I./include
 CXX			:= c++
 CXXFLAGS	:= -Wall -Wextra -Werror -std=c++98
 
-SRCS		:= $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/parser/*.cpp) $(wildcard $(SRCDIR)/request/*.cpp) $(wildcard $(SRCDIR)/utils/*.cpp)
+SRCS		:= $(wildcard $(SRCDIR)/*.cpp) $(wildcard $(SRCDIR)/parser/*.cpp) $(wildcard $(SRCDIR)/request/*.cpp) $(wildcard $(SRCDIR)/utils/*.cpp) $(wildcard $(SRCDIR)/server/*.cpp)
 OBJS 		:= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/$(SRCDIR)/%.o,$(SRCS))
 DEPS 		:= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/$(SRCDIR)/%.d,$(SRCS))
 

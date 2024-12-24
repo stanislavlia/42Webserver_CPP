@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/11 15:14:18 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/24 14:20:43 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,8 @@ void	RequestHandler::_DefaultErrorPage(int status_code)
 	// send(client_fd, response.c_str(), response.length(), 0);
 }
 
+
+
 std::string	RequestHandler::_render_html(const std::string& path)
 {
 	std::ifstream file(path.c_str());
@@ -75,7 +77,7 @@ void RequestHandler::_respond_with_error(int status_code, const std::string& sta
 {
 	std::string path = location.getErrorPage().at(status_code);
 
-
+	// std::cout << "Error page path: " << path << std::endl;
 	std::string html_content = _render_html(path);
 	std::stringstream ss;
 	ss << html_content.length();
@@ -112,6 +114,7 @@ void	RequestHandler::_respond_with_html(const std::string& path, int status_code
 
 void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& location)
 {
+	// std::cout << "Validation code: " << validation_code << std::endl;
 	if (validation_code == 1 || validation_code == 3)
 	{
 		// 400 Bad Request
@@ -184,27 +187,17 @@ void	restoreOriginalOrder(std::vector<std::pair<size_t, Location> >& indexed_loc
 	for (size_t i = 0; i < indexed_locations.size(); ++i)
 	{
 		locations[i] = indexed_locations[i].second;
-		// std::cout << "Restored location: " << locations[i].getRoot() << std::endl;
 	}
 }
 
 void	RequestHandler::handleRequest()
 {
-	// std::cout << "Request content length : " << _request.getHeaders().at("Content-Length") << std::endl;
-	
-	// exit(0);
 	std::string request_uri;
-	std::cout << "Request URI: " << _request.getUri() << std::endl;
+
 	if (_request.getUri() == "/")
-	{
-		std::cout << "ROOT URI" << std::endl;
 		request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();
-	}
 	else
-	{
-		// std::cout << "NOT ROOT URI" << std::endl;
 		request_uri = "www" +_request.getUri(); // Add the www prefix
-	}
 
 	std::string request_method = _request.getMethod();
 	std::string matched_root;
@@ -212,13 +205,11 @@ void	RequestHandler::handleRequest()
 	bool location_found = false;
 	size_t found = 0;
 
-	// std::cout << "REQUEST URI: " << request_uri << std::endl;
-
 	// Store original indices and copies of locations
 	std::vector<std::pair<size_t, Location> > indexed_locations;
-	for (size_t i = 0; i < _config.locations.size(); ++i) {
+	for (size_t i = 0; i < _config.locations.size(); ++i)
+	{
 		indexed_locations.push_back(std::make_pair(i, _config.locations[i]));
-		// std::cout << "Index location: " << indexed_locations[i].second.getRoot() << std::endl;
 	}
 
 	// Sort locations by root length in descending order
@@ -234,8 +225,12 @@ void	RequestHandler::handleRequest()
 			std::string full_path = location_root + request_uri.substr(location_root.length());
 			matched_root = location_root;
 			matched_location = indexed_locations[i].second;
-			location_found = true;
 			found = indexed_locations[i].first; // Store the original index
+			if (request_uri == location_root)
+			{
+				location_found = true;
+				break;
+			}
 			break;
 		}
 	}
@@ -245,22 +240,17 @@ void	RequestHandler::handleRequest()
 
 	if (!location_found)
 	{
-		// find the closest correct location ex : www/static/allo.html = nearest location is www/static
-		// Find the closest correct location by trimming the request URI
 		std::string trimmed_uri = request_uri;
-		while (!location_found && !trimmed_uri.empty())
+		size_t pos = trimmed_uri.find_last_of('/');
+		trimmed_uri = trimmed_uri.substr(0, pos);
+		while (!trimmed_uri.empty() && !location_found)
 		{
-			size_t pos = trimmed_uri.find_last_of('/');
-			if (pos == std::string::npos)
-			{
-				break;
-			}
-			trimmed_uri = trimmed_uri.substr(0, pos);
-			for (size_t i = 0; i < indexed_locations.size(); ++i)
+			for (size_t i = indexed_locations.size() - 1; i > 0; --i)
 			{
 				const std::string& location_root = indexed_locations[i].second.getRoot();
 				if (trimmed_uri == location_root)
 				{
+					// exit(0);
 					matched_root = location_root;
 					matched_location = indexed_locations[i].second;
 					location_found = true;
@@ -268,6 +258,12 @@ void	RequestHandler::handleRequest()
 					break;
 				}
 			}
+			pos = trimmed_uri.find_last_of('/');
+			if (pos == std::string::npos)
+			{
+				break;
+			}
+			trimmed_uri = trimmed_uri.substr(0, pos);
 		}
 		if (!location_found)
 		{
@@ -280,8 +276,6 @@ void	RequestHandler::handleRequest()
 	// Check if the request method is allowed
 	std::vector<std::string> allowed_methods = _config.locations[found].getAllowedMethods();
 	bool method_allowed = false;
-
-	std::cout << "request method: " << request_method << std::endl;
 
 	for (size_t i = 0; i < allowed_methods.size(); ++i)
 	{
@@ -306,29 +300,20 @@ void	RequestHandler::handleRequest()
 
 	std::string full_path = matched_root + request_uri.substr(matched_root.length());
 
-	std::cout << "REQUEST METHOD: " << request_method << std::endl;
-	
-	if (request_method == "POST")
+	if (matched_root == "www/cgi-bin")
 	{
-		std::cout << "Handle Request >POST< : " << request_uri << std::endl;
-		// Handle POST request
+		_handleCgiRequest(full_path, matched_location, request_uri);
+	}
+	else if (request_method == "POST")
+	{
 		_handlePostRequest(full_path, matched_location);
 	}
 	else if (request_method == "DELETE")
 	{
-		std::cout << "Handle Request >DELETE< : " << request_uri << std::endl;
-		// Handle DELETE request
 		_handleDeleteRequest(full_path, matched_location);
-	}
-	else if (request_method == "GET" && request_uri == "/index.html")
-	{
-		std::cout << "Handle Request >Root< : " << request_uri << std::endl;
-		_handleRootDirectoryRequest(matched_root, request_uri, matched_location);
 	}
 	else if (request_method == "GET")
 	{
-		std::cout << "Handle Request >Request< : " << request_uri << std::endl;
-		// _handleSpecificUriRequest(_socket, matched_root, request_uri);
 		_handleFileOrDirectoryRequest(full_path, request_uri, matched_location);
 	}
 }

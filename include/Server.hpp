@@ -5,15 +5,21 @@
 #include "Logger.hpp"
 #include "ServerParam.hpp"
 
+// enum ConnectionState { READ, WRITE };
+enum ConnectionState { READING, WRITING };
+
 class Server
 {  
 	private:
 		std::string _complete_request;
 		std::vector<ServerParam> configs;
 		std::map<int, std::string> client_buffers;
+		// std::map<int, bool> client_requests_complete;]
 		// int _port;
 		std::vector<int>	_ports;
 		std::map<int, int>server_fd_to_port;
+		std::map<int, int>client_address_map;
+		std::map<int, ConnectionState> connection_states;
 		// const char* _host;
 		std::string _host;
 		// struct sockaddr_in  *_sock_address;
@@ -22,6 +28,8 @@ class Server
 		std::vector<int>	_server_fds;
 		fd_set  read_fds;
 		fd_set  write_fds;
+		fd_set  copy_read_fds;
+		fd_set  copy_write_fds;
 		const std::string _server_name;
 		int	matching_config;
 		std::string response_to_client;
@@ -44,7 +52,7 @@ class Server
 		void  	addServerSocketsToReadFds(int& max_fd);
 		void  	addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd);
 		void	addClientSocketsToWriteFds(const std::vector<int>& client_fds, int& max_fd);
-		void  	handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port);
+		void  	handleNewConnections(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, int& max_fd);
 		void  	handleClientData(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port, char* buffer);
 		void	processRequest(int client_fd, const std::map<int, int>& client_fd_to_port);
 		void	handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port);

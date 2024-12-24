@@ -27,11 +27,8 @@ Server::~Server()
 
 };
 
-//==================SERVER SETUP=====================
-
 void	Server::_listen_socket(int server_fd)
 {
-	// std::cout << "==========LISTEN SOCKET============" << std::endl;
 	if (listen(server_fd, CONN_QUEUE) < 0)
 	{
 		close(server_fd);
@@ -42,28 +39,15 @@ void	Server::_listen_socket(int server_fd)
 
 void    Server::_set_socket_options(int opt, int server_fd)
 {
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) != 0)
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
 	{
-		// std::cout << "==========SET SOCKET OPTION FAILED============" << std::endl;
 		close(server_fd);
 		throw SocketHandlingException("setsockopt() failed");
 	}
 }
 
-// void	Server::_bind_socket(int server_fd)
-// {
-// 	// std::cout << "==========BIND SOCKET============" << std::endl;
-
-// 	if (bind(server_fd, (struct sockaddr *)_sock_address, sizeof(*_sock_address)) < 0)
-// 	{
-// 		close(server_fd);
-// 		throw SocketHandlingException("Failed to bind");	
-// 	}
-// }
-
 void	Server::_setup_socketaddress(int port, int server_fd)
 {
-	// std::cout << "==========SETUP SOCKET ADDRESS============" << std::endl;
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_port = htons(port);
@@ -72,13 +56,10 @@ void	Server::_setup_socketaddress(int port, int server_fd)
 	bind(server_fd, (struct sockaddr *)&address, sizeof(address));
 	
 	_sock_address.push_back(address);
-	// std::cout << "=========SETUP SOCKET ADDRESS FINISHED============" << std::endl;
 }
 
 int    Server::_create_server_socket()
 {
-	// std::cout << "==========CREATE SERVER SOCKET ============" << std::endl;
-
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
 
 	if (server_fd == -1)
@@ -94,15 +75,11 @@ std::map<int, int>server_fd_to_port;
 
 void    Server::setup_server()
 {
-	// std::cout << "==========SETUP SERVER============" << std::endl;
     std::cout << "Setting up server" << std::endl;
 	if (_ports.size() <= 0)
 	{
 		throw SocketHandlingException("No ports to listen on");
 	}
-
-    // clear the set and add all server sockets
-    // FD_ZERO(&read_fds);
 
 	for (size_t i = 0; i < _ports.size(); i++)
 	{
@@ -112,7 +89,6 @@ void    Server::setup_server()
 		int server_fd = _create_server_socket();
 		if (server_fd == -1)
 		{
-			// log error
 			Logger::logMsg(ERROR, "Failed to create server socket");
 			continue;
 		}

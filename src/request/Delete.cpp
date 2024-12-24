@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:16:07 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/11 15:10:48 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/16 12:55:53 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,6 @@ void	RequestHandler::_handleDeleteRequest(const std::string& full_path, const Lo
 	else if (open(full_path.c_str(), O_WRONLY | O_EXCL) == -1)
     {
         // Attempt to open the file with exclusive access to check if it is in use
-        std::cout << "File is in use" << std::endl;
         try
         {
             _respond_with_error(423, "Locked", location); // 423 Locked
@@ -58,5 +57,4 @@ void	RequestHandler::_handleDeleteRequest(const std::string& full_path, const Lo
 	{
 		_serveHtmlContent("<h1>File deleted successfully</h1>", 200, "OK");
 	}
-	std::cout << "DELETE REQUEST" << std::endl;
 }
