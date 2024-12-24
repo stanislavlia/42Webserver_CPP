@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestHandler.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/19 12:59:27 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/24 14:20:43 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,7 +194,6 @@ void	RequestHandler::handleRequest()
 {
 	std::string request_uri;
 
-	std::cout << "==== request uri =====" << _request.getUri() << std::endl;
 	if (_request.getUri() == "/")
 		request_uri = _config.locations[0].getRoot() + _config.locations[0].getIndex();
 	else
@@ -208,7 +207,8 @@ void	RequestHandler::handleRequest()
 
 	// Store original indices and copies of locations
 	std::vector<std::pair<size_t, Location> > indexed_locations;
-	for (size_t i = 0; i < _config.locations.size(); ++i) {
+	for (size_t i = 0; i < _config.locations.size(); ++i)
+	{
 		indexed_locations.push_back(std::make_pair(i, _config.locations[i]));
 	}
 
@@ -306,7 +306,6 @@ void	RequestHandler::handleRequest()
 	}
 	else if (request_method == "POST")
 	{
-		std::cout << "Handling POST request" << std::endl;
 		_handlePostRequest(full_path, matched_location);
 	}
 	else if (request_method == "DELETE")

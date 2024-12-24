@@ -39,7 +39,7 @@ void	Server::_listen_socket(int server_fd)
 
 void    Server::_set_socket_options(int opt, int server_fd)
 {
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) != 0)
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
 	{
 		close(server_fd);
 		throw SocketHandlingException("setsockopt() failed");

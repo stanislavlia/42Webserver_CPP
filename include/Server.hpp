@@ -5,6 +5,9 @@
 #include "Logger.hpp"
 #include "ServerParam.hpp"
 
+// enum ConnectionState { READ, WRITE };
+enum ConnectionState { READING, WRITING };
+
 class Server
 {  
 	private:
@@ -15,6 +18,8 @@ class Server
 		// int _port;
 		std::vector<int>	_ports;
 		std::map<int, int>server_fd_to_port;
+		std::map<int, int>client_address_map;
+		std::map<int, ConnectionState> connection_states;
 		// const char* _host;
 		std::string _host;
 		// struct sockaddr_in  *_sock_address;
