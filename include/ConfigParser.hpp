@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 06:40:11 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:47:31 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ enum FunctionType {
 	INDEX,
 	ERROR_PAGE,
 	LOCATION,
+	CGI_PATH,
 	AUTOINDEX,
 	ROOT,
 	ALLOWED_METHODS,

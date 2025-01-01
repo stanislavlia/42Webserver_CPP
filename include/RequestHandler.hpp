@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:58:30 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:38:43 by marvin           ###   ########.fr       */
+/*   Updated: 2024/12/31 14:22:26 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ class RequestHandler
 		int					_socket;
 		std::string			response;
 
+		std::string	buildRequestPath(const Location& location, std::string& request_uri);
+		bool		findMatchingLocation(const std::string& request_uri, Location& matched_location, size_t& matched_index);
 		void		_ParseMultipartFormData(const std::string& body, const std::string& boundary_delimiter, const Location& location);
 		void		_handleCgiRequest(const std::string& full_path, const Location& location, const std::string& request_uri);
 		std::string	_ExtractBoundaryDelimiter();
@@ -52,6 +54,8 @@ class RequestHandler
 
 		// CGI 
 
+		void		buildPostResponse(const std::string& response, const Location& location);
+		void		setEnvironmentVariables(const std::string& query_string, const std::string& script_name, const std::string& content_length, const Location& location, const std::string& request_uri);
 		void		_prepareAndExecuteCgiScript(const std::string& full_path, const std::vector<std::string>& args);
 		int			_waitForChildProcess(pid_t pid);
 		void		_parseRequestUri(const std::string& request_uri, std::string& full_path, std::string& query_string);

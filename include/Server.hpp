@@ -49,6 +49,7 @@ class Server
 
 		// =======================================
 
+		void	multiplexSocket(fd_set &copy_read_fds, fd_set &copy_write_fds, int &max_fd, std::vector<int> &client_fds);
 		void  	addServerSocketsToReadFds(int& max_fd);
 		void  	addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd);
 		void	addClientSocketsToWriteFds(const std::vector<int>& client_fds, int& max_fd);

@@ -9,11 +9,9 @@
 // Function to check if the request is complete
 bool    isRequestComplete(const std::string& request) 
 {
-	// Check for the end of headers marker
 	size_t headers_end = request.find("\r\n\r\n");
 	if (headers_end == std::string::npos) 
 	{
-		// std::cout << "Headers are not complete" << std::endl;
 		return false; // Headers are not complete
 	}
 
@@ -30,6 +28,10 @@ bool    isRequestComplete(const std::string& request)
 		{
 			return false; // Chunked body is not complete
 		}
+		if (request.substr(chunked_end, 5) != "0\r\n\r\n") 
+        {
+            return false; // EOF is not at the end
+        }
 	}
 
 	// Check for Content-Length header
@@ -246,7 +248,6 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 			else 
 			{
 				bytes_sent[client_fd] += sent;
-
 				if (bytes_sent[client_fd] == total_length) 
 				{
 					bytes_sent.erase(client_fd);
@@ -270,6 +271,19 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 	}
 }
 
+void	Server::multiplexSocket(fd_set &copy_read_fds, fd_set &copy_write_fds, int &max_fd, std::vector<int> &client_fds)
+{
+		FD_ZERO(&copy_read_fds);
+		FD_ZERO(&copy_write_fds);
+
+		addServerSocketsToReadFds(max_fd);
+		addClientSocketsToReadFds(client_fds, max_fd);
+		addClientSocketsToWriteFds(client_fds, max_fd);
+
+		copy_read_fds = read_fds;
+		copy_write_fds = write_fds;
+}
+
 void    Server::run() 
 {
 	char buffer[BUFF_SIZE] = {0};
@@ -283,20 +297,12 @@ void    Server::run()
 
 	while (true) 
 	{
-		FD_ZERO(&copy_read_fds);
-		FD_ZERO(&copy_write_fds);
-
-		addServerSocketsToReadFds(max_fd);
-		addClientSocketsToReadFds(client_fds, max_fd);
-		addClientSocketsToWriteFds(client_fds, max_fd);
-
-		copy_read_fds = read_fds;
-		copy_write_fds = write_fds;
+		multiplexSocket(copy_read_fds, copy_write_fds, max_fd, client_fds);
 
 		struct timeval timeout = {5, 0};
 
 		activity = select(max_fd + 1, &copy_read_fds, &copy_write_fds, NULL, &timeout);
-		if (activity < 0 && errno != EINTR) 
+		if (activity < 0) 
 		{
 			Logger::logMsg(ERROR, "Select error");
 			continue;

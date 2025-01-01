@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:16:07 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:55:53 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/01 16:13:20 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ void	RequestHandler::_handleDeleteRequest(const std::string& full_path, const Lo
 	trimmed_uri = trimmed_uri.substr(0, pos);
 	if (access(trimmed_uri.c_str(), W_OK) != 0 || access(trimmed_uri.c_str(), X_OK) != 0)
 	{
-		std::cout << "Dont have permission to read on the directory" << std::endl;
 		// if the file is not readable return 403
 		try
 		{

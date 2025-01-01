@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:54:11 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/01 16:08:43 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,11 @@ Request::~Request()
 
 // END CANONICAL FORM
 
+void    Request::setBody(const std::string& body)
+{
+    _body = body;
+}
+
 // GETTERS
 
 std::string	Request::getMethod() const
@@ -71,6 +76,11 @@ int    Request::isValid() const
 }
 
 // PARSERS
+
+void	Request::addHeader(const std::string& key, const std::string& value)
+{
+    _headers[key] = value;
+}
 
 void	Request::validateRequest()
 {
@@ -134,7 +144,7 @@ void	Request::parseBody(const std::string& body)
 	_body = body;
 }
 
-void    Request::parseRequest(const std::string& rawRequest)
+void Request::parseRequest(const std::string& rawRequest)
 {
     std::istringstream requestStream(rawRequest);
     std::string line;
@@ -146,9 +156,9 @@ void    Request::parseRequest(const std::string& rawRequest)
         lineStream >> _method;
         lineStream >> _uri;
     }
+
     // Parse headers
     std::string headersStr;
-    std::map<std::string, std::string> headers;
     while (std::getline(requestStream, line) && line != "\r")
     {
         headersStr += line + "\n";
@@ -158,7 +168,7 @@ void    Request::parseRequest(const std::string& rawRequest)
         {
             // Remove leading spaces from value
             value.erase(0, value.find_first_not_of(" \t"));
-            headers[key] = value;
+            _headers[key] = value;
         }
     }
     parseHeaders(headersStr);
@@ -166,13 +176,45 @@ void    Request::parseRequest(const std::string& rawRequest)
     // Parse body
     if (_method == "POST")
     {
-        std::map<std::string, std::string>::iterator contentLengthIt = headers.find("Content-Length");
-        if (contentLengthIt != headers.end())
+        std::map<std::string, std::string>::iterator contentLengthIt = _headers.find("Content-Length");
+        std::map<std::string, std::string>::iterator transferEncodingIt = _headers.find("Transfer-Encoding");
+
+        if (contentLengthIt != _headers.end())
         {
             int contentLength = std::atoi(contentLengthIt->second.c_str());
             std::vector<char> body(contentLength);
             requestStream.read(&body[0], contentLength);
             std::string bodyStr(body.begin(), body.end());
+            parseBody(bodyStr);
+        }
+        else if (transferEncodingIt != _headers.end() && transferEncodingIt->second == "chunked\r")
+        {
+            static int i = 0;
+            std::string bodyStr;
+            while (true)
+            {
+                // Read the chunk size line
+                std::getline(requestStream, line);
+                std::istringstream chunkSizeStream(line);
+                int chunkSize;
+                chunkSizeStream >> std::hex >> chunkSize;
+
+                if (chunkSize == 0)
+                {
+                    break;
+                }
+
+                // Read the chunk data
+                std::vector<char> chunk(chunkSize);
+                requestStream.read(&chunk[0], chunkSize);
+
+                // Append chunk to body
+                bodyStr.append(chunk.begin(), chunk.end());
+
+                // Read the CRLF after the chunk
+                std::getline(requestStream, line);
+                i++;
+            }
             parseBody(bodyStr);
         }
     }
