@@ -27,12 +27,14 @@ void    RequestHandler::setEnvironmentVariables(const std::string& query_string,
 	(void)location;
 	(void)request_uri;
 	setenv("REQUEST_METHOD", _request.getMethod().c_str(), 1);
+	std::cout << "REQUEST_METHOD: " << _request.getMethod() << std::endl;
 	if (!query_string.empty())
 	{
 		setenv("QUERY_STRING", query_string.c_str(), 1);
 	}
 	// setenv("QUERY_STRING", query_string.c_str(), 1);
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
+	std::cout << "CONTENT LENGTH: " << content_length << std::endl;
 	setenv("HTTP_HOST", "localhost", 1);
 	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
 	// Set other necessary environment variables similarly
@@ -134,6 +136,9 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
 	std::string query_string;
     size_t pos = full_path.find("?");
 	std::string script_name;
+	std::cout << "full_path: " << full_path << std::endl;
+	std::cout << "request_uri: " << request_uri << std::endl;
+	std::cout << "location.getRoot(): " << location.getRoot() << std::endl;
     if (pos != std::string::npos)
     {
 		script_name = full_path.substr(0, pos);
@@ -247,7 +252,8 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
         close(pipefd[0]);
 
         int status = _waitForChildProcess(pid);
-
+		std::cout << "status: " << status << std::endl;
+		std::cout << "response: " << response << std::endl;
         if (status == 0)
         {
             _serveHtmlContent(response, 200, "OK");

@@ -22,16 +22,20 @@ bool    isRequestComplete(const std::string& request)
 	size_t transfer_encoding_pos = headers.find("Transfer-Encoding: chunked");
 	if (transfer_encoding_pos != std::string::npos) 
 	{
+		std::cout << "===== CHUNKED =====" << std::endl;
 		// Check if the entire chunked body has been received
 		size_t chunked_end = request.find("0\r\n\r\n", headers_end + 4);
 		if (chunked_end == std::string::npos) 
 		{
+			Logger::logMsg(ERROR, "Chunked body is not complete 1");
 			return false; // Chunked body is not complete
 		}
 		if (request.substr(chunked_end, 5) != "0\r\n\r\n") 
         {
+			Logger::logMsg(ERROR, "Chunked body is not complete 1");
             return false; // EOF is not at the end
         }
+		Logger::logMsg(INFO	, "Chunked body is complete");
 	}
 
 	// Check for Content-Length header
@@ -55,6 +59,7 @@ bool    isRequestComplete(const std::string& request)
 			return false; // Body is not complete
 		}
 	}
+	std::cout << "===== Return true request complete =====" << std::endl;
 	return true; // Request is complete
 }
 
@@ -206,8 +211,22 @@ void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 	}
 
 	Request request(configs[matching_config]);
+	std::cout << "REQUEST OBJECT CREATED" << std::endl;
 	request.parseRequest(client_buffers[client_fd].c_str());
+	std::cout << "REQUEST IS PARSED" << std::endl;
+
+	// debug 
+
+	// for (std::map<std::string, std::string>::iterator it = request.getHeaders().begin(); it != request.getHeaders().end(); ++it) 
+	// {
+	// 	std::cout << it->first << " => " << it->second << std::endl;
+	// }
+
+	// end debug
+
 	RequestHandler handler(client_fd, request, configs[matching_config]);
+	std::cout << "Request: " << client_buffers[client_fd] << std::endl;
+	std::cout << "body: " << request.getBody() << std::endl;
 	handler.handleRequest();
 	response_to_client = handler.getResponse();
 	client_buffers[client_fd].clear();
