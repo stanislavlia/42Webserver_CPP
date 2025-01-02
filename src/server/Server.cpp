@@ -201,6 +201,7 @@ void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 		if (configs[j].getPort() == port) 
 		{
 			matching_config = j;
+			break ;
 		}
 	}
 
