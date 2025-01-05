@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Post.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/19 10:01:57 by moetienn         ###   ########.fr       */
+/*   Updated: 2025/01/05 17:40:32 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 void	RequestHandler::_handleErrorPage(int status_code, const Location& location)
 {
+	std::cout << "Error: " << status_code << std::endl;
 	try 
 	{
 		_handleInvalidRequest(status_code, location);	
@@ -57,6 +58,7 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 
 	for (size_t i = 0; i < parts.size(); i++)
 	{
+		// std::cout << "Part " << i << ": " << parts[i] << std::endl;
 		if (parts[i].empty() || parts[i] == "--")
 		{
 			continue;
@@ -75,7 +77,6 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 			contentEnd = content.find("\r\n--");
             content = content.substr(0, contentEnd);
         }
-
 		std::istringstream	iss(headers);
 		std::string			line;
 		
@@ -103,15 +104,17 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 				std::ofstream	outfile(filePath.c_str());
 				if (outfile)
 				{
-					std::cout << "Writing to file: " << filePath << std::endl;
+					if (monitor->getWriteCount() > 0)
+						return ;
+					monitor->incrementWriteCount();
 					outfile.write(content.c_str(), content.size());
 					outfile.close();
-					std::cout << "File uploaded successfully" << std::endl;
 					_serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
 				}
 				else
 				{
 					std::cerr << "Error opening file for writing: " << fileName << std::endl;
+					_handleErrorPage(400, location);
 				}
 			}
 		}
@@ -166,7 +169,6 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 		std::string	boundary_delimiter =_ExtractBoundaryDelimiter();
 		std::string body = _getExactBody(_request.getBody(), content_length);
 
-		std::cout << "Parse multipart form data" << std::endl;
 		_ParseMultipartFormData(body, boundary_delimiter, location);
 	}
 }

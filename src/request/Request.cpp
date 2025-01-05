@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:54:11 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/02 15:47:49 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,11 @@ Request::~Request()
 
 // END CANONICAL FORM
 
+void    Request::setBody(const std::string& body)
+{
+    _body = body;
+}
+
 // GETTERS
 
 std::string	Request::getMethod() const
@@ -71,6 +76,11 @@ int    Request::isValid() const
 }
 
 // PARSERS
+
+void	Request::addHeader(const std::string& key, const std::string& value)
+{
+    _headers[key] = value;
+}
 
 void	Request::validateRequest()
 {
@@ -134,7 +144,41 @@ void	Request::parseBody(const std::string& body)
 	_body = body;
 }
 
-void    Request::parseRequest(const std::string& rawRequest)
+#include <sstream>
+
+void restoreBody(std::string& body)
+{
+    std::string restoredBody;
+    size_t pos = 0;
+
+    while (pos < body.size())
+    {
+        // Find the position of the next chunk size
+        size_t chunkSizeEnd = body.find("\r\n", pos);
+        if (chunkSizeEnd == std::string::npos)
+            break;
+
+        // Get the chunk size as a string and convert it to an integer
+        std::string chunkSizeStr = body.substr(pos, chunkSizeEnd - pos);
+        std::stringstream ss;
+        ss << std::hex << chunkSizeStr;
+        size_t chunkSize;
+        ss >> chunkSize;
+
+        // Move the position to the start of the chunk data
+        pos = chunkSizeEnd + 2;
+
+        // Append the chunk data to the restored body
+        restoredBody.append(body, pos, chunkSize);
+
+        // Move the position to the start of the next chunk size
+        pos += chunkSize + 2;
+    }
+
+    body = restoredBody;
+}
+
+void Request::parseRequest(const std::string& rawRequest)
 {
     std::istringstream requestStream(rawRequest);
     std::string line;
@@ -146,9 +190,9 @@ void    Request::parseRequest(const std::string& rawRequest)
         lineStream >> _method;
         lineStream >> _uri;
     }
+
     // Parse headers
     std::string headersStr;
-    std::map<std::string, std::string> headers;
     while (std::getline(requestStream, line) && line != "\r")
     {
         headersStr += line + "\n";
@@ -158,7 +202,7 @@ void    Request::parseRequest(const std::string& rawRequest)
         {
             // Remove leading spaces from value
             value.erase(0, value.find_first_not_of(" \t"));
-            headers[key] = value;
+            _headers[key] = value;
         }
     }
     parseHeaders(headersStr);
@@ -166,13 +210,59 @@ void    Request::parseRequest(const std::string& rawRequest)
     // Parse body
     if (_method == "POST")
     {
-        std::map<std::string, std::string>::iterator contentLengthIt = headers.find("Content-Length");
-        if (contentLengthIt != headers.end())
+        std::map<std::string, std::string>::iterator contentLengthIt = _headers.find("Content-Length");
+        std::map<std::string, std::string>::iterator transferEncodingIt = _headers.find("Transfer-Encoding");
+
+        if (contentLengthIt != _headers.end())
         {
             int contentLength = std::atoi(contentLengthIt->second.c_str());
             std::vector<char> body(contentLength);
             requestStream.read(&body[0], contentLength);
             std::string bodyStr(body.begin(), body.end());
+            parseBody(bodyStr);
+        }
+        else if (transferEncodingIt != _headers.end() && transferEncodingIt->second.find("chunked\r") != std::string::npos)
+        {
+            std::string bodyStr;
+            std::string line;
+        
+            while (true)
+            {
+                // Read the chunk size line
+                std::getline(requestStream, line);
+        
+                // Strip any extraneous whitespace or CRLF characters
+                line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+                line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
+        
+                // Convert the chunk size from hexadecimal to an integer
+                std::istringstream chunkSizeStream(line);
+                int chunkSize;
+                chunkSizeStream >> std::hex >> chunkSize;
+                
+                // If chunk size is 0, the transfer is done
+                if (chunkSize == 0)
+                {
+                    break;
+                }
+        
+                // Read the chunk data
+                std::vector<char> chunk(chunkSize);
+                requestStream.read(chunk.data(), chunkSize);
+        
+                if (requestStream.gcount() != chunkSize)
+                {
+                    std::cerr << "Error reading chunk data" << std::endl;
+                    break;
+                }
+        
+                // Append chunk to body
+                bodyStr.append(chunk.begin(), chunk.end());
+        
+                // Read the CRLF after the chunk
+                std::getline(requestStream, line);
+            }
+            restoreBody(bodyStr);        
             parseBody(bodyStr);
         }
     }

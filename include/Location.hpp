@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 03:25:34 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 06:39:30 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:46:05 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,10 @@
 class Location
 {
 	private:
+		std::string							location_name;
 		int									clientMaxBodySize;
 		std::string							index;
+		std::string 						cgi_path;
 		std::string							root;
 		std::vector<std::string>			allowedMethods;
 		bool								autoIndex;
@@ -33,6 +35,8 @@ class Location
 
 		// SETTERS
 
+		void	setCgiPath(std::string cgi_path);
+		void	setLocationName(std::string location_name);
 		void	setIndex(std::string index);
 		void	setErrorPage(int errorValue, std::string errorPage);
 		void	setRoot(std::string root);
@@ -43,6 +47,8 @@ class Location
 		
 		// GETTERS
 		
+		std::string					getCgiPath(void) const;
+		std::string					getLocationName(void) const;
 		std::string					getIndex(void) const;
 		std::string					getRoot(void) const;
 		bool						getAutoIndex(void) const;

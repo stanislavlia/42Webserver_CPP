@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ConfigParser.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/22 07:21:36 by moetienn         ###   ########.fr       */
+/*   Updated: 2025/01/01 13:58:42 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,26 @@ void	parseAutoIndex(std::istringstream& iss, Location& location)
 		location.setAutoIndex(false);
 }
 
-// void    parseRoot(std::istringstream& iss, ServerParam& server)
-// {
-// 	std::string root;
-// 	std::getline(iss, root, ';');
-// 	root = root.substr(1);
-// 	server.setRoot(root);
-// }
+
+void	parseLocationName(std::istringstream& iss, Location& location)
+{
+	std::string location_full;
+	std::string location_name;
+	std::getline(iss, location_name, ';');
+	location_full = location_name.substr(1);
+	location_name = location_full.substr(0, location_full.size() - 1);
+	// check if the first character is a space
+	location_name.erase(location_name.find_last_not_of(" \t\n\r\f\v") + 1);
+	location.setLocationName(location_name);
+}
+
+void    parseRoot(std::istringstream& iss, ServerParam& server)
+{
+	std::string root;
+	std::getline(iss, root, ';');
+	root = root.substr(1);
+	server.setRoot(root);
+}
 
 void	parseRoot(std::istringstream& iss, Location& location)
 {
@@ -137,7 +150,13 @@ void	parseHost(std::istringstream& iss, ServerParam& server)
 	host = host.substr(1);
 	server.setHost(host.c_str());
 }
-
+void	parseCgiPath(std::istringstream& iss, Location& location)
+{
+	std::string cgi_path;
+	std::getline(iss, cgi_path, ';');
+	cgi_path = cgi_path.substr(1);
+	location.setCgiPath(cgi_path);
+}
 // MAIN FUNCTION
 
 /**
@@ -168,9 +187,9 @@ std::vector<ServerParam>    ConfigParser::parse()
 		throw std::runtime_error("Unable to open config file: " + _configFile);
 	}
 	
-	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "autoindex", "root", "allowed_methods" , "server", "}"};
+	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "cgi_path", "autoindex", "root", "allowed_methods" , "server", "}"};
 	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseHost, parseClientMaxBodySize};
-	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage};
+	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage, parseLocationName, parseCgiPath};
 	
 
 	std::string line;
@@ -219,6 +238,13 @@ std::vector<ServerParam>    ConfigParser::parse()
 					{
 						in_location_block = true;
 						current_location = Location();
+						functions_location[5](iss, current_location);
+					}
+						break;
+					case CGI_PATH:
+					{
+						if (in_location_block)
+							functions_location[6](iss, current_location);
 					}
 						break;
 					case AUTOINDEX:

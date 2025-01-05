@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:53:24 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/03 13:39:05 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,8 @@ int main(int ac, char **av)
         }
     }
 
-    Server server(servers);
+    Monitor monitor;    
+    Server server(&monitor, servers);
     std::cout << "Server created" << std::endl;
 
     try

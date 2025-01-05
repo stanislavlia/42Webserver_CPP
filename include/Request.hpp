@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/22 11:22:24 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/31 12:59:03 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,12 @@ class	Request
 
 		void    parseRequest(const std::string& request);
 
+		void	addHeader(const std::string& key, const std::string& value);
 		std::string	getMethod() const;
 		std::string	getUri() const;
 		std::map<std::string, std::string>	getHeaders() const;
 		std::string	getBody() const;
+		void	setBody(const std::string& body);
 		int			isValid() const;
 
 		std::vector<std::string> split(const std::string& str, const std::string& delimiter);

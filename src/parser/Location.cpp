@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 03:29:13 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/18 07:33:41 by moetienn         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:46:20 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,9 @@
 
 Location::Location(void)
 {
+	this->location_name = "";
 	this->clientMaxBodySize = 0;
+	this->cgi_path = "";
 	this->index = "";
 	this->root = "";
 	this->allowedMethods = std::vector<std::string>();
@@ -33,7 +35,9 @@ Location &Location::operator=(Location const &rhs)
 {
 	if (this != &rhs)
 	{
+		this->location_name = rhs.location_name;
 		this->clientMaxBodySize = rhs.clientMaxBodySize;
+		this->cgi_path = rhs.cgi_path;
 		this->index = rhs.index;
 		this->root = rhs.root;
 		this->allowedMethods = rhs.allowedMethods;
@@ -50,6 +54,11 @@ Location::~Location(void)
 // END OF CANONICAL FORM
 
 // SETTERS
+
+void	Location::setLocationName(std::string location_name)
+{
+	this->location_name = location_name;
+}
 
 void	Location::setIndex(std::string index)
 {
@@ -86,9 +95,19 @@ void	Location::setClientMaxBodySize(int clientMaxBodySize)
 	this->clientMaxBodySize = clientMaxBodySize;
 }
 
+void	Location::setCgiPath(std::string cgi_path)
+{
+	this->cgi_path = cgi_path;
+}
+
 // END OF SETTERS
 
 // GETTERS
+
+std::string	Location::getLocationName(void) const
+{
+	return (this->location_name);
+}
 
 std::string	Location::getIndex(void) const
 {
@@ -120,4 +139,8 @@ int	Location::getClientMaxBodySize(void) const
 	return (this->clientMaxBodySize);
 }
 
+std::string	Location::getCgiPath(void) const
+{
+	return (this->cgi_path);
+}
 // END OF GETTERS

@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:08:56 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/16 12:52:06 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/01 16:11:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path,
 		}
 		else if (S_ISREG(path_stat.st_mode))
 		{
-			// std::cout << "IS REG" << std::endl;
 			if (access(full_path.c_str(), R_OK) == 0)
 				_respond_with_html(full_path.c_str(), 200, "OK");
 			else
