@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/05 17:05:01 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/05 17:40:32 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 void	RequestHandler::_handleErrorPage(int status_code, const Location& location)
 {
+	std::cout << "Error: " << status_code << std::endl;
 	try 
 	{
 		_handleInvalidRequest(status_code, location);	
@@ -103,7 +104,6 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 				std::ofstream	outfile(filePath.c_str());
 				if (outfile)
 				{
-					std::cout << "getting write count in post" << monitor->getWriteCount() << std::endl;
 					if (monitor->getWriteCount() > 0)
 						return ;
 					monitor->incrementWriteCount();
@@ -114,6 +114,7 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 				else
 				{
 					std::cerr << "Error opening file for writing: " << fileName << std::endl;
+					_handleErrorPage(400, location);
 				}
 			}
 		}

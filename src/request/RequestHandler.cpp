@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/05 16:51:45 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/05 17:44:21 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,15 @@ void	RequestHandler::_respond_with_html(const std::string& path, int status_code
 
 void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& location)
 {
-	// std::cout << "Validation code: " << validation_code << std::endl;
+	std::cout << "Validation code: " << validation_code << std::endl;
+	if (validation_code == 400)
+	{
+		validation_code = 1;
+	}
+	else if (validation_code == 405)
+	{
+		validation_code = 2;
+	}
 	if (validation_code == 1 || validation_code == 3)
 	{
 		// 400 Bad Request

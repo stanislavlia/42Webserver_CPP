@@ -77,7 +77,6 @@ void	Server::addClientSocketsToReadFds(const std::vector<int>& client_fds, int& 
 		if (client_fds[i] > 0) 
 		{
 			FD_SET(client_fds[i], &monitor->getReadFds());
-			// std::cout << "Adding client fd to readfds: " << client_fds[i] << std::endl;
 		}
 		if (client_fds[i] > max_fd) 
 		{
@@ -93,7 +92,6 @@ void	Server::addClientSocketsToWriteFds(const std::vector<int>& client_fds, int&
 		if (client_fds[i] > 0) 
 		{
 			FD_SET(client_fds[i], &monitor->getWriteFds());
-			// std::cout << "Adding client fd to writefds: " << client_fds[i] << std::endl;
 		}
 		if (client_fds[i] > max_fd) 
 		{
@@ -157,16 +155,12 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 		// normal read
 		if (FD_ISSET(client_fd, &monitor->getCopyReadFds()))
 		{
-			std::cout << "==== Read ====" << std::endl;
 			// if (monitor->getReadCount() > 0)
 				// return ;
 			int valread = read(client_fd, buffer, BUFF_SIZE);
 			monitor->incrementReadCount();
-			std::cout << "read count in server after 1st increment: " << monitor->getReadCount() << std::endl;
 			if (valread <= 0) 
 			{
-				std::cout << "Valread is less than 0" << std::endl;
-				std::cout << "close connection for client fd: " << client_fd << std::endl;
 				close(client_fd);
 				FD_CLR(client_fd, &monitor->getReadFds());
 				client_fds.erase(client_fds.begin() + i);
@@ -225,8 +219,6 @@ void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 	client_buffers[client_fd].clear();
 }
 
-// ---- hardocded response
-
 void	_serveHtmlContent(const std::string& html_content, std::string& response, int status_code, const std::string& status_message)
 {
 	std::stringstream ss;
@@ -241,8 +233,6 @@ void	_serveHtmlContent(const std::string& html_content, std::string& response, i
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 }
-
-// ---- end hardcoded response
 
 int Server::_waitForChildProcess(pid_t pid)
 {
@@ -272,19 +262,15 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 	for (size_t i = 0; i < client_fds.size();) 
 	{
 		int client_fd = client_fds[i];
-		// std::cout << "client fd: " << client_fd << std::endl;
 		if (FD_ISSET(client_fd, &monitor->getCopyWriteFds()) && connection_states[client_fd] == WRITING)
 		{
-			// ------------------------------ WORKING CODE ------------------------------
 			if (monitor->getCgiState(client_fd) != NO_STATE)
 			{
 				if (monitor->getCgiState(client_fd) == CGI_READING)
 				{
 					if (monitor->getReadCount() > 0)
 						return ;
-					std::cout << "=== CGI READING CGI OUTPUT ===" << std::endl;
 					char buffer[4096];
-					// exit(0);
 					if (monitor->getCgiStatus(client_fd) == 0)
 					{
 						monitor->incrementReadCount();
@@ -292,12 +278,9 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 						std::string html_content;
 						html_content.append(buffer, bytes_read);
     					_serveHtmlContent(html_content, response_to_client, 200, "OK");
-						// std::cout << "response to client: " << response_to_client << std::endl;
 					}
 				}
 			}
-			// ---------------------------------------------------------------------------
-			std::cout << "=== get write count ===" << monitor->getWriteCount() << std::endl;
 			if (monitor->getWriteCount() > 0)
 				return ;
 			monitor->incrementWriteCount();
@@ -311,9 +294,7 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 			size_t remaining_data = total_length - bytes_sent[client_fd];
 			const char* data_to_send = response_to_client.c_str() + bytes_sent[client_fd];
 
-			std::cout << "send to client fd: " << client_fd << std::endl;
 			ssize_t sent = send(client_fd, data_to_send, remaining_data, 0);
-			std::cout << "==== Send ====" << std::endl;
 			if (sent <= 0) 
 			{
 				Logger::logMsg(ERROR, "Send error");
@@ -331,8 +312,6 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 				bytes_sent[client_fd] += sent;
 				if (bytes_sent[client_fd] == total_length) 
 				{
-					std::cout << "Bytes sent is equal to total length" << std::endl;
-					std::cout << "close connection for client fd: " << client_fd << std::endl;
 					bytes_sent.erase(client_fd);
 					close(client_fd);
 					FD_CLR(client_fd, &monitor->getReadFds());
@@ -345,7 +324,7 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 					monitor->removeCgiState(client_fd);
 					monitor->removeCgiStatus(client_fd);
 				} 
-				else 
+				else
 				{
 					++i;
 				}
@@ -397,7 +376,6 @@ void Server::run()
         }
 		// if (z > 30)
 		// 	exit(0);
-		std::cout << "=== Select ===" << std::endl;
 		monitor->resetCounts(); // Reset read/write counts
 
         handleNewConnections(client_fds, client_fd_to_port, max_fd);

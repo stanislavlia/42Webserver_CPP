@@ -15,11 +15,9 @@ void alarm_handler(int signum, siginfo_t *info, void *context)
 	(void)signum;
 	(void)context;
 	pid_t pid = info->si_pid;
-    std::cout << "Alarm triggered!" << std::endl;
     if (pid > 0)
     {
         kill(pid, SIGKILL);
-        std::cout << "CGI script timed out" << std::endl;
     }
     Timeout = 1;
 }
@@ -63,8 +61,6 @@ int RequestHandler::_waitForChildProcess(pid_t pid)
 
 void	RequestHandler::_handleCgiError(const std::string& request_uri, const Location& location, int exit_status)
 {
-    std::cout << "CGI script exited with status " << exit_status << std::endl;
-
 	std::string file_path;
 
 	size_t pos = request_uri.find("?");
@@ -76,7 +72,6 @@ void	RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 	{
 		file_path = request_uri;
 	}
-    std::cout << "file path: " << file_path << std::endl;
 	if (exit_status == 120)
 	{
 		try
@@ -152,7 +147,6 @@ void RequestHandler::setContentLength(std::string& content_length)
         content_length = _request.getHeaders().at("Content-Length");
     }
 }
-// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], const std::string& script_name)
 {
@@ -204,7 +198,6 @@ void RequestHandler::writePostDataToChild(int cgi_in[2])
 
 void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::string& request_uri, const Location& location, int client_fd, std::vector<int>& client_fds)
 {
-    std::cout << "handleCgiResponse" << std::endl;
     (void)client_fds;
 
     struct sigaction sa;
@@ -234,7 +227,6 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
     else if (status != 0)
     {
         monitor->addCgiStatus(client_fd, status);
-        std::cout << "|||||||||||| Error in handleCgiResponse ||||||||||||" << std::endl;
         _handleCgiError(request_uri, location, status);
         monitor->setCgiState(client_fd, NO_STATE);
         // monitor->removeCgiPipe(client_fd);
@@ -247,10 +239,8 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
     }
 	if (monitor->getReadCount() > 0 && status == 0)
 	{
-		std::cout << "=== Read count is greater than 0 ===" << std::endl;
 		return ;
 	}
-    std::cout << " END OF CGI RESPONSE " << std::endl;
 }
 
 void RequestHandler::_handleCgiRequest(const std::string& full_path, const Location& location, const std::string& request_uri, int client_fd, std::vector<int>& client_fds)
@@ -271,8 +261,6 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
     monitor->setCgiState(client_fd, CGI_WRITING);
 
     writePostDataToChild(cgi_in);
-    std::cout << " Number of write in CGI: " << monitor->getWriteCount() << std::endl;
-
     monitor->setCgiState(client_fd, CGI_READING);
     if (monitor->getCgiState(client_fd) == CGI_READING)
     {
@@ -280,7 +268,6 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
     }
 }
 
-// // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void RequestHandler::createPipes(int pipefd[2], int stdin_pipe[2])
 {
