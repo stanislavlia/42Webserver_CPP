@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/02 13:53:11 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/02 15:47:49 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,12 +191,10 @@ void Request::parseRequest(const std::string& rawRequest)
         lineStream >> _uri;
     }
 
-    std::cout << "PARSE HEADER" << std::endl;
     // Parse headers
     std::string headersStr;
     while (std::getline(requestStream, line) && line != "\r")
     {
-        // std::cout << "line: " << line << std::endl;
         headersStr += line + "\n";
         std::istringstream headerStream(line);
         std::string key, value;
@@ -210,7 +208,6 @@ void Request::parseRequest(const std::string& rawRequest)
     parseHeaders(headersStr);
 
     // Parse body
-    std::cout << "PARSE BODY" << std::endl;
     if (_method == "POST")
     {
         std::map<std::string, std::string>::iterator contentLengthIt = _headers.find("Content-Length");
@@ -218,7 +215,6 @@ void Request::parseRequest(const std::string& rawRequest)
 
         if (contentLengthIt != _headers.end())
         {
-            std::cout << "CONTENT LENGTH: " << contentLengthIt->second << std::endl;
             int contentLength = std::atoi(contentLengthIt->second.c_str());
             std::vector<char> body(contentLength);
             requestStream.read(&body[0], contentLength);
@@ -227,7 +223,6 @@ void Request::parseRequest(const std::string& rawRequest)
         }
         else if (transferEncodingIt != _headers.end() && transferEncodingIt->second.find("chunked\r") != std::string::npos)
         {
-            std::cout << "CHUNKED" << std::endl;
             std::string bodyStr;
             std::string line;
         
@@ -267,43 +262,9 @@ void Request::parseRequest(const std::string& rawRequest)
                 // Read the CRLF after the chunk
                 std::getline(requestStream, line);
             }
-            restoreBody(bodyStr);
-            std::cout << "Final bodyStr: " << bodyStr << std::endl;
-        
+            restoreBody(bodyStr);        
             parseBody(bodyStr);
         }
-        // else if (transferEncodingIt != _headers.end() && transferEncodingIt->second == "chunked\r")
-        // {
-        //     std::cout << "CHUNKED" << std::endl;
-        //     static int i = 0;
-        //     std::string bodyStr;
-        //     while (true)
-        //     {
-        //         // Read the chunk size line
-        //         std::getline(requestStream, line);
-        //         std::istringstream chunkSizeStream(line);
-        //         int chunkSize;
-        //         chunkSizeStream >> std::hex >> chunkSize;
-
-        //         if (chunkSize == 0)
-        //         {
-        //             break;
-        //         }
-
-        //         // Read the chunk data
-        //         std::vector<char> chunk(chunkSize);
-        //         requestStream.read(&chunk[0], chunkSize);
-
-        //         // Append chunk to body
-        //         bodyStr.append(chunk.begin(), chunk.end());
-
-        //         // Read the CRLF after the chunk
-        //         std::getline(requestStream, line);
-        //         i++;
-        //     }
-        //     parseBody(bodyStr);
-        // }
-        std::cout << "BODY: " << _body << std::endl;
     }
     validateRequest();
 }

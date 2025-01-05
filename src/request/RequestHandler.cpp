@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/01 16:19:08 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/05 16:51:45 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 // CANONICAL FORM
 
-RequestHandler::RequestHandler(int socket, Request& request, ServerParam& config) : _request(request), _config(config), _socket(socket)
+RequestHandler::RequestHandler(int socket, Request& request, ServerParam& config, Monitor *mon) : _request(request), _config(config), _socket(socket), monitor(mon)
 {
 }
 
@@ -88,6 +88,7 @@ void RequestHandler::_respond_with_error(int status_code, const std::string& sta
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
+	// std::cout << "Response: " << response << std::endl;
 	// send(socket, response.c_str(), response.length(), 0);
 }
 
@@ -292,7 +293,7 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
     return full_path;
 }
 
-void	RequestHandler::handleRequest() 
+void	RequestHandler::handleRequest(std::vector<int>& client_fds) 
 {
     std::string request_uri = _request.getUri();
     std::string request_method = _request.getMethod();
@@ -300,6 +301,7 @@ void	RequestHandler::handleRequest()
     size_t matched_index;
 
     // Find the matching location
+	// std::cout << "reading count: " << _reading_count << std::endl;
     bool location_found = findMatchingLocation(request_uri, matched_location, matched_index);
 
     if (!location_found) 
@@ -347,10 +349,13 @@ void	RequestHandler::handleRequest()
     std::string full_path = buildRequestPath(matched_location, request_uri);
 
 	
-	
+	std::cout << "Number of read Before to handle the request: " << monitor->getReadCount() << std::endl;
+	std::cout << "request : " << request_uri << std::endl;
     if (matched_location.getRoot() == "www/cgi-bin") 
     {
-        _handleCgiRequest(full_path, matched_location, request_uri);
+		std::cout << "CGI REQUEST" << std::endl;
+		std::cout << "Number of read Before CGI: " << monitor->getReadCount() << std::endl;
+        _handleCgiRequest(full_path, matched_location, request_uri, _socket, client_fds);
     }
     else if (request_method == "POST")
     {

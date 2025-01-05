@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/ python3
 
 import time
 import sys
-
-print("Content-Type: text/plain")
-print()
 
 print("Starting infinite loop...")
 

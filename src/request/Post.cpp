@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/01 16:11:35 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/05 17:05:01 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,10 @@ void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std:
 				std::ofstream	outfile(filePath.c_str());
 				if (outfile)
 				{
+					std::cout << "getting write count in post" << monitor->getWriteCount() << std::endl;
+					if (monitor->getWriteCount() > 0)
+						return ;
+					monitor->incrementWriteCount();
 					outfile.write(content.c_str(), content.size());
 					outfile.close();
 					_serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");

@@ -7,17 +7,21 @@
 #include <signal.h>
 #include <iostream>
 
+int Timeout = 0;
+
 // Signal handler for CGI script timeout
 void alarm_handler(int signum, siginfo_t *info, void *context)
 {
 	(void)signum;
 	(void)context;
 	pid_t pid = info->si_pid;
-	if (pid > 0)
-	{
-		kill(pid, SIGKILL);
-		Logger::logMsg(ERROR, "CGI script timed out");
-	}
+    std::cout << "Alarm triggered!" << std::endl;
+    if (pid > 0)
+    {
+        kill(pid, SIGKILL);
+        std::cout << "CGI script timed out" << std::endl;
+    }
+    Timeout = 1;
 }
 
 // Function to set the environment variables required by the CGI script
@@ -27,27 +31,13 @@ void    RequestHandler::setEnvironmentVariables(const std::string& query_string,
 	(void)location;
 	(void)request_uri;
 	setenv("REQUEST_METHOD", _request.getMethod().c_str(), 1);
-	std::cout << "REQUEST_METHOD: " << _request.getMethod() << std::endl;
 	if (!query_string.empty())
 	{
 		setenv("QUERY_STRING", query_string.c_str(), 1);
 	}
-	// setenv("QUERY_STRING", query_string.c_str(), 1);
 	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
-	std::cout << "CONTENT LENGTH: " << content_length << std::endl;
 	setenv("HTTP_HOST", "localhost", 1);
 	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
-	// Set other necessary environment variables similarly
-}
-
-bool RequestHandler::_createPipe(int pipefd[2])
-{
-	if (pipe(pipefd) == -1)
-	{
-		Logger::logMsg(ERROR, "Pipe error");
-		return false;
-	}
-	return true;
 }
 
 int RequestHandler::_waitForChildProcess(pid_t pid)
@@ -71,8 +61,10 @@ int RequestHandler::_waitForChildProcess(pid_t pid)
 	return status;
 }
 
-bool RequestHandler::_handleCgiError(const std::string& request_uri, const Location& location, int exit_status)
+void	RequestHandler::_handleCgiError(const std::string& request_uri, const Location& location, int exit_status)
 {
+    std::cout << "CGI script exited with status " << exit_status << std::endl;
+
 	std::string file_path;
 
 	size_t pos = request_uri.find("?");
@@ -82,10 +74,23 @@ bool RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 	}
 	else
 	{
-		file_path = location.getRoot();
+		file_path = request_uri;
 	}
-	if (access(file_path.c_str(), F_OK) != 0)
+    std::cout << "file path: " << file_path << std::endl;
+	if (exit_status == 120)
 	{
+		try
+		{
+			_respond_with_error(504, "Gateway Timeout", location);
+		}
+		catch (std::exception& e)
+		{
+			_DefaultErrorPage(504);
+		}
+	}
+	else if (access(file_path.c_str(), F_OK) != 0)
+	{
+        std::cout << "File not found" << std::endl;
 		try
 		{
 			_respond_with_error(404, "Not Found", location);
@@ -106,17 +111,6 @@ bool RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 			_DefaultErrorPage(403);
 		}
 	}
-	else if (exit_status == 120)
-	{
-		try
-		{
-			_respond_with_error(504, "Gateway Timeout", location);
-		}
-		catch (std::exception& e)
-		{
-			_DefaultErrorPage(504);
-		}
-	}
 	else
 	{
 		try
@@ -128,202 +122,172 @@ bool RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 			_DefaultErrorPage(400);
 		}
 	}
-	return false;
 }
 
-void RequestHandler::_handleCgiRequest(const std::string& full_path, const Location& location, const std::string& request_uri)
+void RequestHandler::parseFullPath(const std::string& full_path, std::string& script_name, std::string& query_string)
 {
-	std::string query_string;
     size_t pos = full_path.find("?");
-	std::string script_name;
-	std::cout << "full_path: " << full_path << std::endl;
-	std::cout << "request_uri: " << request_uri << std::endl;
-	std::cout << "location.getRoot(): " << location.getRoot() << std::endl;
     if (pos != std::string::npos)
     {
-		script_name = full_path.substr(0, pos);
+        script_name = full_path.substr(0, pos);
         query_string = full_path.substr(pos + 1);
     }
-	else
-	{
-		script_name = full_path;
-		query_string = "";
-	}
-
-	std::string content_length;
-	if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
-	{
-		std::ostringstream oss;
-		oss << _request.getBody().length();
-		content_length = oss.str();
-	}
-	else
-	{
-		content_length = _request.getHeaders().at("Content-Length");
-		// content_length = "0";
-	}
-    // std::string content_length = _request.getHeaders().at("Content-Length");
-	setEnvironmentVariables(query_string, full_path, content_length, location, request_uri);
-    int pipefd[2];
-    if (pipe(pipefd) == -1)
+    else
     {
-        Logger::logMsg(ERROR, "Pipe error");
-        return;
+        script_name = full_path;
+        query_string = "";
     }
+}
 
+void RequestHandler::setContentLength(std::string& content_length)
+{
+    if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
+    {
+        std::ostringstream oss;
+        oss << _request.getBody().length();
+        content_length = oss.str();
+    }
+    else
+    {
+        content_length = _request.getHeaders().at("Content-Length");
+    }
+}
+// --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], const std::string& script_name)
+{
     pid_t pid = fork();
     if (pid == -1)
     {
         Logger::logMsg(ERROR, "Fork error");
-        return;
+        return -1;
     }
 
     if (pid == 0)
     {
         // Child process
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
+        close(cgi_out[0]);
+        dup2(cgi_out[1], STDOUT_FILENO);
+        close(cgi_out[1]);
 
-        int stdin_pipe[2];
-        if (pipe(stdin_pipe) == -1)
-        {
-            Logger::logMsg(ERROR, "Pipe error");
-            return;
-        }
+        close(cgi_in[1]);
+        dup2(cgi_in[0], STDIN_FILENO);
+        close(cgi_in[0]);
 
-        	pid_t stdin_pid = fork();
-        	if (stdin_pid == -1)
-        	{
-        	    Logger::logMsg(ERROR, "Fork error");
-        	    return;
-        	}
+        std::string interpreter = "/usr/bin/python3";
+        char *exec_args[] = {
+            const_cast<char*>(interpreter.c_str()),
+            const_cast<char*>(script_name.c_str()),
+            NULL
+        };
 
-        	if (stdin_pid == 0)
-        	{
-        	    // Child process to write POST data to stdin
-        	    close(stdin_pipe[0]);
-        	    write(stdin_pipe[1], _request.getBody().c_str(), _request.getBody().length());
-        	    close(stdin_pipe[1]);
-        	    exit(0);
-		}
-        else
-        {
-            // Parent process to execute CGI script
-            close(stdin_pipe[1]);
-            dup2(stdin_pipe[0], STDIN_FILENO);
-            close(stdin_pipe[0]);
-
-            std::string interpreter = "/usr/bin/python3";
-            std::string script = script_name;
-            char *exec_args[] = {
-                const_cast<char*>(interpreter.c_str()),
-                const_cast<char*>(script.c_str()),
-                NULL
-            };
-
-            execv(interpreter.c_str(), exec_args);
-            Logger::logMsg(ERROR, ("Execv failed: " + std::string(strerror(errno))).c_str());
-            exit(1);
-        }
+        execv(interpreter.c_str(), exec_args);
+        Logger::logMsg(ERROR, ("Execv failed: " + std::string(strerror(errno))).c_str());
+        exit(1);
     }
-    else
+    return pid;
+}
+
+void RequestHandler::writePostDataToChild(int cgi_in[2])
+{
+    if (_request.getMethod() == "POST")
     {
         // Parent process
-        close(pipefd[1]);
+        close(cgi_in[0]);
 
-        std::string response;
-        char buffer[4096];
-        int bytes_read;
-
-		struct sigaction sa;
-        sa.sa_flags = SA_SIGINFO;
-        sa.sa_sigaction = alarm_handler;
-        sigemptyset(&sa.sa_mask);
-        sigaction(SIGALRM, &sa, NULL);
-
-        alarm(5);
-
-        while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer))) > 0)
-        {
-            response.append(buffer, bytes_read);
-        }
-
-        close(pipefd[0]);
-
-        int status = _waitForChildProcess(pid);
-		std::cout << "status: " << status << std::endl;
-		std::cout << "response: " << response << std::endl;
-        if (status == 0)
-        {
-            _serveHtmlContent(response, 200, "OK");
-        }
-        else
-        {
-            _handleCgiError(request_uri, location, status);
-        }
+        // Write the POST data to the child's stdin
+        write(cgi_in[1], _request.getBody().c_str(), _request.getBody().length());
+        close(cgi_in[1]);
+        monitor->incrementWriteCount();
     }
 }
 
-void RequestHandler::buildPostResponse(const std::string& response, const Location& location)
+void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::string& request_uri, const Location& location, int client_fd, std::vector<int>& client_fds)
 {
-	(void)location;
+    std::cout << "handleCgiResponse" << std::endl;
+    (void)client_fds;
 
-	std::map<std::string, std::string> headers = _request.getHeaders();
-	std::istringstream iss(response);
-	std::string line;
-	std::map<std::string, std::string> newHeaders;
+    struct sigaction sa;
+    sa.sa_flags = SA_SIGINFO;
+    sa.sa_sigaction = alarm_handler;
+    sigemptyset(&sa.sa_mask);
 
-	// Add new Header from Script
-	while (std::getline(iss, line))
+    if (sigaction(SIGALRM, &sa, NULL) == -1) {
+        perror("sigaction");
+        Logger::logMsg(ERROR, "Failed to set up SIGALRM handler");
+        exit(1);
+    }
+    unsigned int timeout = 20;
+
+    alarm(timeout);
+    int status = _waitForChildProcess(pid);
+    if (Timeout != 0)
+    {
+        status = 120;
+        monitor->addCgiStatus(client_fd, status);
+        _handleCgiError(request_uri, location, status);
+        monitor->setCgiState(client_fd, NO_STATE);
+        close(cgi_out[0]);
+        kill (pid, SIGKILL);
+        Timeout = 0;
+    }
+    else if (status != 0)
+    {
+        monitor->addCgiStatus(client_fd, status);
+        std::cout << "|||||||||||| Error in handleCgiResponse ||||||||||||" << std::endl;
+        _handleCgiError(request_uri, location, status);
+        monitor->setCgiState(client_fd, NO_STATE);
+        // monitor->removeCgiPipe(client_fd);
+        close(cgi_out[0]);
+    }
+    else
+    {
+        monitor->addCgiStatus(client_fd, status);
+        monitor->addCgiPipe(client_fd, cgi_out[0]);
+    }
+	if (monitor->getReadCount() > 0 && status == 0)
 	{
-		std::istringstream headerStream(line);
-		std::string key, value;
-		if (std::getline(headerStream, key, ':') && std::getline(headerStream, value))
-		{
-			// Remove leading spaces from value
-			value.erase(0, value.find_first_not_of(" \t"));
-			newHeaders[key] = value;
-		}
+		std::cout << "=== Read count is greater than 0 ===" << std::endl;
+		return ;
 	}
-	
-	// Update headers in _request
-	for (std::map<std::string, std::string>::iterator it = newHeaders.begin(); it != newHeaders.end(); ++it)
-	{
-		_request.addHeader(it->first, it->second);
-	}
+    std::cout << " END OF CGI RESPONSE " << std::endl;
+}
 
-	if (newHeaders.find("Content-Disposition") == newHeaders.end())
-	{
-		// Add a default Content-Disposition header
-		std::string filename = "\"default_filename.txt\""; // Set your default filename here
-		_request.addHeader("Content-Disposition", "form-data; name=\"file\"; filename=" + filename);
-	}
+void RequestHandler::_handleCgiRequest(const std::string& full_path, const Location& location, const std::string& request_uri, int client_fd, std::vector<int>& client_fds)
+{
+    std::string script_name;
+    std::string query_string;
+    parseFullPath(full_path, script_name, query_string);
+    std::string content_length;
+    setContentLength(content_length);
+    setEnvironmentVariables(query_string, full_path, content_length, location, request_uri);
 
-	headers = _request.getHeaders(); // Refresh the headers map
+    int cgi_in[2];
+    int cgi_out[2];
+    createPipes(cgi_in, cgi_out);
+    monitor->setCgiState(client_fd, CGI_INIT);
 
-	if (headers.find("Content-Disposition") != headers.end())
-	{
-		std::string contentDisposition = headers["Content-Disposition"];
-		size_t fileNamePos = contentDisposition.find("filename=\"");
-		if (fileNamePos != std::string::npos)
-		{
-			size_t fileNameEnd = contentDisposition.find("\"", fileNamePos + 10);
-			std::string fileName = contentDisposition.substr(fileNamePos + 10, fileNameEnd - fileNamePos - 10);
-			std::string filePath = location.getRoot() + "/" + fileName;
-			std::ofstream outfile(filePath.c_str());
-			if (outfile)
-			{
-				outfile.write(_request.getBody().c_str(), _request.getBody().size());
-				outfile.close();
-				_serveHtmlContent(response, 200, "OK");
-				// _serveHtmlContent2("<h1>File uploaded successfully</h1>", 200, "OK");
-			}
-			else
-			{
-				Logger::logMsg(ERROR, "Failed to open file for writing");
-				_serveHtmlContent("<h1>Failed to upload file</h1>", 500, "Internal Server Error");
-			}
-		}
-	}
+    pid_t pid = forkAndExecuteCgiScript(cgi_in, cgi_out, script_name);
+    monitor->setCgiState(client_fd, CGI_WRITING);
+
+    writePostDataToChild(cgi_in);
+    std::cout << " Number of write in CGI: " << monitor->getWriteCount() << std::endl;
+
+    monitor->setCgiState(client_fd, CGI_READING);
+    if (monitor->getCgiState(client_fd) == CGI_READING)
+    {
+        handleCgiResponse(cgi_out, pid, request_uri, location, client_fd, client_fds);
+    }
+}
+
+// // --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void RequestHandler::createPipes(int pipefd[2], int stdin_pipe[2])
+{
+    if (pipe(pipefd) == -1 || pipe(stdin_pipe) == -1)
+    {
+        Logger::logMsg(ERROR, "Pipe error");
+        exit(1);
+    }
+
 }
