@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/02 15:47:49 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/06 14:07:22 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 // CANONICAL FORM
 
 Request::Request(const ServerParam& config)
-: _config(config), _method(""), _uri(""), _headers(), _body(""), _valid(false)
+: _config(config), _method(""), _uri(""), _headers(), _body(), _valid(false)
 {
 }
 
@@ -43,7 +43,7 @@ Request::~Request()
 
 // END CANONICAL FORM
 
-void    Request::setBody(const std::string& body)
+void    Request::setBody(const std::vector<char>& body)
 {
     _body = body;
 }
@@ -65,9 +65,10 @@ std::map<std::string, std::string>	Request::getHeaders() const
     return _headers;
 }
 
-std::string	Request::getBody() const
+
+std::vector<char>	Request::getBody() const
 {
-	return _body;
+    return _body;
 }
 
 int    Request::isValid() const
@@ -139,37 +140,37 @@ void	Request::parseHeaders(const std::string& headers)
     }
 }
 
-void	Request::parseBody(const std::string& body)
+void	Request::parseBody(const std::vector<char>& body)
 {
-	_body = body;
+    _body = body;
 }
 
 #include <sstream>
 
-void restoreBody(std::string& body)
+void restoreBody(std::vector<char>& body)
 {
-    std::string restoredBody;
+    std::vector<char> restoredBody;
     size_t pos = 0;
 
     while (pos < body.size())
     {
         // Find the position of the next chunk size
-        size_t chunkSizeEnd = body.find("\r\n", pos);
-        if (chunkSizeEnd == std::string::npos)
+        std::vector<char>::iterator chunkSizeEndIt = std::search(body.begin() + pos, body.end(), "\r\n", "\r\n" + 2);
+        if (chunkSizeEndIt == body.end())
             break;
 
         // Get the chunk size as a string and convert it to an integer
-        std::string chunkSizeStr = body.substr(pos, chunkSizeEnd - pos);
+        std::string chunkSizeStr(body.begin() + pos, chunkSizeEndIt);
         std::stringstream ss;
         ss << std::hex << chunkSizeStr;
         size_t chunkSize;
         ss >> chunkSize;
 
         // Move the position to the start of the chunk data
-        pos = chunkSizeEnd + 2;
+        pos = std::distance(body.begin(), chunkSizeEndIt) + 2;
 
         // Append the chunk data to the restored body
-        restoredBody.append(body, pos, chunkSize);
+        restoredBody.insert(restoredBody.end(), body.begin() + pos, body.begin() + pos + chunkSize);
 
         // Move the position to the start of the next chunk size
         pos += chunkSize + 2;
@@ -207,63 +208,69 @@ void Request::parseRequest(const std::string& rawRequest)
     }
     parseHeaders(headersStr);
 
-    // Parse body
     if (_method == "POST")
     {
         std::map<std::string, std::string>::iterator contentLengthIt = _headers.find("Content-Length");
         std::map<std::string, std::string>::iterator transferEncodingIt = _headers.find("Transfer-Encoding");
-
+        
         if (contentLengthIt != _headers.end())
         {
             int contentLength = std::atoi(contentLengthIt->second.c_str());
             std::vector<char> body(contentLength);
+            
             requestStream.read(&body[0], contentLength);
-            std::string bodyStr(body.begin(), body.end());
-            parseBody(bodyStr);
+            // // Pass the body vector to parseBody instead of converting it to a string
+            parseBody(body);
         }
         else if (transferEncodingIt != _headers.end() && transferEncodingIt->second.find("chunked\r") != std::string::npos)
         {
-            std::string bodyStr;
+            std::vector<char> body;
             std::string line;
-        
+    
             while (true)
             {
                 // Read the chunk size line
                 std::getline(requestStream, line);
-        
+    
                 // Strip any extraneous whitespace or CRLF characters
                 line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
                 line.erase(std::remove(line.begin(), line.end(), '\n'), line.end());
-        
+    
                 // Convert the chunk size from hexadecimal to an integer
                 std::istringstream chunkSizeStream(line);
                 int chunkSize;
                 chunkSizeStream >> std::hex >> chunkSize;
-                
+    
                 // If chunk size is 0, the transfer is done
+                std::cout << "Chunk size: " << chunkSize << std::endl;
                 if (chunkSize == 0)
                 {
                     break;
                 }
-        
+    
                 // Read the chunk data
                 std::vector<char> chunk(chunkSize);
                 requestStream.read(chunk.data(), chunkSize);
-        
+                std::cout << "line: " << line << std::endl;
                 if (requestStream.gcount() != chunkSize)
                 {
                     std::cerr << "Error reading chunk data" << std::endl;
                     break;
                 }
-        
+                // if (line.find("0\n\r\n\r") != std::string::npos)
+                // {
+                //     break;
+                // }
+    
                 // Append chunk to body
-                bodyStr.append(chunk.begin(), chunk.end());
-        
+                body.insert(body.end(), chunk.begin(), chunk.end());
+    
                 // Read the CRLF after the chunk
                 std::getline(requestStream, line);
             }
-            restoreBody(bodyStr);        
-            parseBody(bodyStr);
+            
+            restoreBody(body);
+            parseBody(body);
         }
     }
     validateRequest();

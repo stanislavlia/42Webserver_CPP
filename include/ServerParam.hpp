@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerParam.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
+/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:13:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/10/17 07:17:02 by moetienn         ###   ########.fr       */
+/*   Updated: 2025/01/06 12:29:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,15 +43,12 @@ class ServerParam
 		void	setRoot(std::string root);
 		void	setAutoIndex(bool autoIndex);
 		void	setAllowedMethods(std::vector<std::string> allowedMethods);
-		// void	setErrorPage(std::map<int, std::string> errorPage);
 		void	setHost(const char *host);
 		void	setClientMaxBodySize(int clientMaxBodySize);
-		void	setLocations(std::vector<Location> locations);
 
 
 		int							getPort(void) const;
 		std::string					getServerName(void) const;
-		// std::string					getIndex(void) const;
 		std::string					getRoot(void) const;
 		bool						getAutoIndex(void) const;
 		std::vector<std::string>	getAllowedMethods(void) const;
@@ -61,9 +58,6 @@ class ServerParam
 
 		void						addLocation(Location location);
 		std::vector<Location>		getLocations(void) const;
-
-		// void						InitLocation(std::string uri, std::string root, std::vector<std::string> allowedMethods, bool autoIndex);
-	
 }	;
 
 #endif

@@ -1,4 +1,4 @@
-#!/usr/bin python3
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -11,7 +11,7 @@ def parse_post_data():
 
 def main():
     # Print the HTTP header
-    # print("Content-Type: text/html\n")
+    print("Content-Type: text/html\n")
 
     # Parse the POST data
     post_params = parse_post_data()

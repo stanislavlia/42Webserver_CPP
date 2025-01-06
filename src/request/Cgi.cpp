@@ -15,27 +15,12 @@ void alarm_handler(int signum, siginfo_t *info, void *context)
 	(void)signum;
 	(void)context;
 	pid_t pid = info->si_pid;
+    std::cout << "alarm TRIGGERED" << std::endl;
     if (pid > 0)
     {
         kill(pid, SIGKILL);
     }
     Timeout = 1;
-}
-
-// Function to set the environment variables required by the CGI script
-void    RequestHandler::setEnvironmentVariables(const std::string& query_string, const std::string& script_name, const std::string& content_length, const Location& location, const std::string& request_uri)
-{
-	(void)script_name;
-	(void)location;
-	(void)request_uri;
-	setenv("REQUEST_METHOD", _request.getMethod().c_str(), 1);
-	if (!query_string.empty())
-	{
-		setenv("QUERY_STRING", query_string.c_str(), 1);
-	}
-	setenv("CONTENT_LENGTH", content_length.c_str(), 1);
-	setenv("HTTP_HOST", "localhost", 1);
-	setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
 }
 
 int RequestHandler::_waitForChildProcess(pid_t pid)
@@ -139,7 +124,7 @@ void RequestHandler::setContentLength(std::string& content_length)
     if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
     {
         std::ostringstream oss;
-        oss << _request.getBody().length();
+        oss << _request.getBody().size();
         content_length = oss.str();
     }
     else
@@ -148,7 +133,7 @@ void RequestHandler::setContentLength(std::string& content_length)
     }
 }
 
-pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], const std::string& script_name)
+pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], const std::string& script_name, const std::vector<std::string>& env_vars)
 {
     pid_t pid = fork();
     if (pid == -1)
@@ -168,6 +153,13 @@ pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], con
         dup2(cgi_in[0], STDIN_FILENO);
         close(cgi_in[0]);
 
+        std::vector<char*> env_vars_cstr;
+        for (size_t i = 0; i < env_vars.size(); i++)
+        {
+            env_vars_cstr.push_back(const_cast<char*>(env_vars[i].c_str()));
+        }
+        env_vars_cstr.push_back(NULL);
+
         std::string interpreter = "/usr/bin/python3";
         char *exec_args[] = {
             const_cast<char*>(interpreter.c_str()),
@@ -175,7 +167,7 @@ pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], con
             NULL
         };
 
-        execv(interpreter.c_str(), exec_args);
+        execve(interpreter.c_str(), exec_args, env_vars_cstr.data());
         Logger::logMsg(ERROR, ("Execv failed: " + std::string(strerror(errno))).c_str());
         exit(1);
     }
@@ -190,7 +182,7 @@ void RequestHandler::writePostDataToChild(int cgi_in[2])
         close(cgi_in[0]);
 
         // Write the POST data to the child's stdin
-        write(cgi_in[1], _request.getBody().c_str(), _request.getBody().length());
+        write(cgi_in[1], _request.getBody().data(), _request.getBody().size());
         close(cgi_in[1]);
         monitor->incrementWriteCount();
     }
@@ -199,7 +191,7 @@ void RequestHandler::writePostDataToChild(int cgi_in[2])
 void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::string& request_uri, const Location& location, int client_fd, std::vector<int>& client_fds)
 {
     (void)client_fds;
-
+    Timeout = 0;
     struct sigaction sa;
     sa.sa_flags = SA_SIGINFO;
     sa.sa_sigaction = alarm_handler;
@@ -210,7 +202,7 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
         Logger::logMsg(ERROR, "Failed to set up SIGALRM handler");
         exit(1);
     }
-    unsigned int timeout = 20;
+    unsigned int timeout = 30;
 
     alarm(timeout);
     int status = _waitForChildProcess(pid);
@@ -229,7 +221,6 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
         monitor->addCgiStatus(client_fd, status);
         _handleCgiError(request_uri, location, status);
         monitor->setCgiState(client_fd, NO_STATE);
-        // monitor->removeCgiPipe(client_fd);
         close(cgi_out[0]);
     }
     else
@@ -245,19 +236,28 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
 
 void RequestHandler::_handleCgiRequest(const std::string& full_path, const Location& location, const std::string& request_uri, int client_fd, std::vector<int>& client_fds)
 {
-    std::string script_name;
-    std::string query_string;
-    parseFullPath(full_path, script_name, query_string);
-    std::string content_length;
+    std::string                 script_name;
+    std::string                 content_length;
+    std::vector<std::string>    env_vars;
+    std::string                 query_string;
+
     setContentLength(content_length);
-    setEnvironmentVariables(query_string, full_path, content_length, location, request_uri);
+    parseFullPath(full_path, script_name, query_string);
+    env_vars.push_back("REQUEST_METHOD=" + _request.getMethod());
+    if (!query_string.empty())
+    {
+        env_vars.push_back("QUERY_STRING=" + query_string);
+    }
+    env_vars.push_back("CONTENT_LENGTH=" + content_length);
+    env_vars.push_back("HTTP_HOST=localhost");
+    env_vars.push_back("SERVER_PROTOCOL=HTTP/1.1");
 
     int cgi_in[2];
     int cgi_out[2];
     createPipes(cgi_in, cgi_out);
     monitor->setCgiState(client_fd, CGI_INIT);
 
-    pid_t pid = forkAndExecuteCgiScript(cgi_in, cgi_out, script_name);
+    pid_t pid = forkAndExecuteCgiScript(cgi_in, cgi_out, script_name, env_vars);
     monitor->setCgiState(client_fd, CGI_WRITING);
 
     writePostDataToChild(cgi_in);
