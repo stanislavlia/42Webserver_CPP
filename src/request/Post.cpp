@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 12:45:13 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/06 23:00:20 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,9 +129,9 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
                 std::ofstream outfile(filePath.c_str(), std::ios::binary);
                 if (outfile)
 				{
-                    if (monitor->getWriteCount() > 0)
-                        return;
-                    monitor->incrementWriteCount();
+                    // if (monitor->getWriteCount(client_fd) > 0)
+                    //     return;
+                    // monitor->incrementWriteCount();
                     outfile.write(content.data(), content.size());
                     outfile.close();
                     _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");

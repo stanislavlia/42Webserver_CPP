@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 18:09:54 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/06 23:07:53 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,7 +249,7 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
     return full_path;
 }
 
-void	RequestHandler::handleRequest(std::vector<int>& client_fds) 
+void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd) 
 {
     std::string request_uri = _request.getUri();
     std::string request_method = _request.getMethod();
@@ -306,7 +306,7 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds)
 
     if (matched_location.getRoot() == "www/cgi-bin") 
     {
-        _handleCgiRequest(full_path, matched_location, request_uri, _socket, client_fds);
+        _handleCgiRequest(full_path, matched_location, request_uri, client_fd, client_fds);
     }
     else if (request_method == "POST")
     {

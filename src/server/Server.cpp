@@ -550,9 +550,9 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 		int client_fd = client_fds[i];
 		if (FD_ISSET(client_fd, &monitor->getReadFds()))
 		{
-			// std::cout << "Read data Client fd: " << client_fd << std::endl;
+			std::cout << "Read data Client fd: " << client_fd << std::endl;
 			int valread = read(client_fd, buffer, BUFF_SIZE);
-			monitor->incrementReadCount();
+			monitor->incrementReadCount(client_fd);
 			if (valread <= 0) 
 			{
 				close(client_fd);
@@ -574,8 +574,8 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 				}
 				else
 				{
-					// std::cout << "Request not complete" << std::endl;
-					// std::cout << "check for next client" << std::endl;
+					std::cout << "Request not complete" << std::endl;
+					std::cout << "check for next client" << std::endl;
 					++i;
 				}
 			}
@@ -611,7 +611,7 @@ void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 	request.parseRequest(client_buffers[client_fd]);
 
 	RequestHandler handler(client_fd, request, configs[matching_config], monitor);
-	handler.handleRequest(client_fds);
+	handler.handleRequest(client_fds, client_fd);
 	response_to_client[client_fd] = handler.getResponse();
 	client_buffers[client_fd].clear();
 }
@@ -631,26 +631,26 @@ void	_serveHtmlContent(const std::string& html_content, std::string& response, i
 						   "\r\n" + html_content;
 }
 
-int Server::_waitForChildProcess(pid_t pid)
-{
-	int status = 0;
-	waitpid(pid, &status, 0);
+// int Server::_waitForChildProcess(pid_t pid)
+// {
+// 	int status = 0;
+// 	waitpid(pid, &status, 0);
 
-	if (WIFEXITED(status))
-	{
-		int exit_status = WEXITSTATUS(status);
-		if (exit_status != 0)
-		{
-			Logger::logMsg(ERROR, "CGI script exited with status %d", exit_status);
-		}
-		return exit_status;
-	}
-	else
-	{
-		Logger::logMsg(ERROR, "CGI script did not exit normally");
-	}
-	return status;
-}
+// 	if (WIFEXITED(status))
+// 	{
+// 		int exit_status = WEXITSTATUS(status);
+// 		if (exit_status != 0)
+// 		{
+// 			Logger::logMsg(ERROR, "CGI script exited with status %d", exit_status);
+// 		}
+// 		return exit_status;
+// 	}
+// 	else
+// 	{
+// 		Logger::logMsg(ERROR, "CGI script did not exit normally");
+// 	}
+// 	return status;
+// }
 
 void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port) 
 {
@@ -663,14 +663,19 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 			std::cout << "Send response Client fd: " << client_fd << std::endl;
 			if (monitor->getCgiState(client_fd) != NO_STATE)
 			{
+				std::cout << "CGI STATE NOT NO_STATE" << std::endl;
+				std::cout << "CGI STATE: " << monitor->getCgiState(client_fd) << std::endl;
 				if (monitor->getCgiState(client_fd) == CGI_READING)
 				{
-					if (monitor->getReadCount() > 0)
+					std::cout << "CGI STATE READING" << std::endl;
+					std::cout << "Read count: " << monitor->getReadCount(client_fd) << std::endl;
+					if (monitor->getReadCount(client_fd) > 0)
 						return ;
 					char buffer[4096];
 					if (monitor->getCgiStatus(client_fd) == 0)
 					{
-						monitor->incrementReadCount();
+						monitor->incrementReadCount(client_fd);
+						std::cout << "Read from CGI pipe client fd: " << client_fd << std::endl;
 						size_t bytes_read = read(monitor->getCgiPipe(client_fd), buffer, sizeof(buffer));
 						std::string html_content;
 						html_content.append(buffer, bytes_read);
@@ -678,9 +683,9 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 					}
 				}
 			}
-			if (monitor->getWriteCount() > 0)
+			if (monitor->getWriteCount(client_fd) > 0)
 				return ;
-			monitor->incrementWriteCount();
+			monitor->incrementWriteCount(client_fd);
 			size_t total_length = response_to_client[client_fd].length();
 
 			if (bytes_sent.find(client_fd) == bytes_sent.end()) 
@@ -691,6 +696,7 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 			size_t remaining_data = total_length - bytes_sent[client_fd];
 			const char* data_to_send = response_to_client[client_fd].c_str() + bytes_sent[client_fd];
 
+			std::cout << "Send data to client fd: " << client_fd << std::endl;
 			ssize_t sent = send(client_fd, data_to_send, remaining_data, 0);
 			if (sent <= 0) 
 			{
@@ -767,6 +773,7 @@ void Server::run()
 	// FD_ZERO(&monitor->getReadFds());
 	// FD_ZERO(&monitor->getWriteFds());
 
+	static int z = 0;
 	while (true)
 	{
 		multiplexSocket(max_fd, client_fds);
@@ -787,9 +794,13 @@ void Server::run()
 			continue;
 		}
 		monitor->resetCounts(); // Reset read/write counts
+		// if (z > 10)
+		// 	exit(1);
+		// std::cout << "== select ==" << std::endl;
 
 		handleNewConnections(client_fds, client_fd_to_port, max_fd);
 		handleClientData(client_fds, client_fd_to_port, buffer);
 		handleWritableClientSockets(client_fds, client_fd_to_port);
+		z++;
 	}
 }
