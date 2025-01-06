@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/05 17:40:32 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/06 12:45:13 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,89 +36,114 @@ std::string RequestHandler::_ExtractBoundaryDelimiter()
 	std::string boundary_delimiter = _request.getHeaders().at("Content-Type").substr(pos + 9);
 	return boundary_delimiter;
 }
-std::string RequestHandler::_getExactBody(const std::string& body, int content_length)
+
+void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, const std::string& boundary_delimiter, const Location& location)
 {
-    // Ensure the body has enough data
-    if (body.size() < (size_t)content_length)
-    {
-        std::cerr << "Body is smaller than Content-Length" << std::endl;
-        return "";
-    }
+    // Convert the body vector to a string to use the split function
+    std::string bodyStr(body.begin(), body.end());
 
-    // Extract the exact number of bytes specified by Content-Length
-    std::string exact_body = body.substr(0, content_length);
-    return exact_body;
-}
+    // Split the body into parts based on the boundary delimiter
+    std::vector<std::string> parts = _request.split(bodyStr, "--" + boundary_delimiter);
 
-void	RequestHandler::_ParseMultipartFormData(const std::string& body, const std::string& boundary_delimiter, const Location& location)
-{
-	// Split the body into parts based on the boundary delimiter\n";
-	std::vector<std::string> parts = _request.split(body, "--" + boundary_delimiter);
-	//print the parts
-
-	for (size_t i = 0; i < parts.size(); i++)
+    for (size_t i = 0; i < parts.size(); i++)
 	{
-		// std::cout << "Part " << i << ": " << parts[i] << std::endl;
-		if (parts[i].empty() || parts[i] == "--")
+        if (parts[i].empty() || parts[i] == "--")
 		{
-			continue;
-		}
-		size_t headerEnd = parts[i].find("\r\n\r\n");
-		if (headerEnd == std::string::npos)
-		{
-			continue;
-		}
-		std::string	headers = parts[i].substr(0, headerEnd);
-		std::string	content = parts[i].substr(headerEnd + 4);
-
-		size_t contentEnd = content.find("\r\n--" + boundary_delimiter);
-        if (contentEnd == std::string::npos)
-		{
-			contentEnd = content.find("\r\n--");
-            content = content.substr(0, contentEnd);
+            continue;
         }
-		std::istringstream	iss(headers);
-		std::string			line;
-		
-		std::map<std::string, std::string> headersMap;
-		while (std::getline(iss, line))
-		{
-			size_t colonPos = line.find(": ");
-			if (colonPos != std::string::npos)
-			{
-				std::string	headerName = line.substr(0, colonPos);
-				std::string headerValue = line.substr(colonPos + 2);
-				headersMap[headerName] = headerValue;
-			}
-		}
-		if (headersMap.find("Content-Disposition") != headersMap.end())
-		{
-			std::string	contentDisposition = headersMap["Content-Disposition"];
-			size_t		fileNamePos = contentDisposition.find("filename=\"");
-			if (fileNamePos != std::string::npos)
-			{
-				size_t		fileNameEnd = contentDisposition.find("\"", fileNamePos + 10);
-				std::string	fileName = contentDisposition.substr(fileNamePos + 10, fileNameEnd - fileNamePos - 10);
 
-				std::string	filePath = location.getRoot() + "/" + fileName;
-				std::ofstream	outfile(filePath.c_str());
-				if (outfile)
+        size_t headerEnd = parts[i].find("\r\n\r\n");
+        if (headerEnd == std::string::npos)
+		{
+            continue;
+        }
+
+        std::string headers = parts[i].substr(0, headerEnd);
+
+        // Extract binary content
+        std::vector<char> content(parts[i].begin() + headerEnd + 4, parts[i].end());
+
+        size_t contentEnd = std::string(content.begin(), content.end()).find("\r\n--" + boundary_delimiter);
+        if (contentEnd != std::string::npos)
+		{
+            content.resize(contentEnd);
+        }
+
+        std::istringstream iss(headers);
+        std::string line;
+
+        std::map<std::string, std::string> headersMap;
+        while (std::getline(iss, line))
+		{
+            size_t colonPos = line.find(": ");
+            if (colonPos != std::string::npos)\
+			{
+                std::string headerName = line.substr(0, colonPos);
+                std::string headerValue = line.substr(colonPos + 2);
+                headersMap[headerName] = headerValue;
+            }
+        }
+
+        if (headersMap.find("Content-Disposition") != headersMap.end())
+		{
+            std::string contentDisposition = headersMap["Content-Disposition"];
+            size_t fileNamePos = contentDisposition.find("filename=\"");
+            if (fileNamePos != std::string::npos)
+			{
+                size_t fileNameEnd = contentDisposition.find("\"", fileNamePos + 10);
+                std::string fileName = contentDisposition.substr(fileNamePos + 10, fileNameEnd - fileNamePos - 10);
+
+                std::string filePath = location.getRoot() + "/" + fileName;
+
+				// Check if the file already exists
+				struct stat buffer;
+				if (stat(filePath.c_str(), &buffer) == 0)
+    			{
+    			    std::cerr << "File already exists: " << fileName << std::endl;
+    			    // append a number to the file name
+    			    // count the number of files with the same name
+    			    int count = 1;
+    			    std::string newFileName;
+    			    size_t dotPos = fileName.find_last_of('.');
+    			    while (true)
+    			    {
+    			        std::stringstream ss;
+    			        ss << count;
+    			        if (dotPos != std::string::npos)
+    			        {
+    			            newFileName = fileName.substr(0, dotPos) + "(" + ss.str() + ")" + fileName.substr(dotPos);
+    			        }
+    			        else
+    			        {
+    			            newFileName = fileName + "(" + ss.str() + ")";
+    			        }
+    			        filePath = location.getRoot() + "/" + newFileName;
+    			        if (stat(filePath.c_str(), &buffer) != 0)
+    			        {
+    			            break;
+    			        }
+    			        count++;
+    			    }
+    			}
+
+                std::ofstream outfile(filePath.c_str(), std::ios::binary);
+                if (outfile)
 				{
-					if (monitor->getWriteCount() > 0)
-						return ;
-					monitor->incrementWriteCount();
-					outfile.write(content.c_str(), content.size());
-					outfile.close();
-					_serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
-				}
+                    if (monitor->getWriteCount() > 0)
+                        return;
+                    monitor->incrementWriteCount();
+                    outfile.write(content.data(), content.size());
+                    outfile.close();
+                    _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
+                }
 				else
 				{
-					std::cerr << "Error opening file for writing: " << fileName << std::endl;
-					_handleErrorPage(400, location);
-				}
-			}
-		}
-	}
+                    std::cerr << "Error opening file for writing: " << fileName << std::endl;
+                    _handleErrorPage(400, location);
+                }
+            }
+        }
+    }
 }
 
 void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Location& location)
@@ -167,8 +192,24 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 	if (_request.getHeaders().at("Content-Type").find("multipart/form-data") != std::string::npos)
 	{
 		std::string	boundary_delimiter =_ExtractBoundaryDelimiter();
-		std::string body = _getExactBody(_request.getBody(), content_length);
+		// std::string body = _getExactBody(_request.getBody().data(), content_length); 
+		std::vector<char> body = _request.getBody();
 
-		_ParseMultipartFormData(body, boundary_delimiter, location);
+		// delete the boundary delimiter from the body
+
+		std::string bodyStr(body.begin(), body.end());
+
+    	// Remove the boundary delimiter from the body
+    	size_t pos = bodyStr.find(boundary_delimiter);
+   		if (pos != std::string::npos)
+		{
+        	bodyStr.erase(pos, boundary_delimiter.length());
+    	}
+
+    	// Convert the string back to a vector of chars
+    	std::vector<char> newBody(bodyStr.begin(), bodyStr.end() - boundary_delimiter.length() - 6);
+
+
+		_ParseMultipartFormData(newBody, boundary_delimiter, location);
 	}
 }

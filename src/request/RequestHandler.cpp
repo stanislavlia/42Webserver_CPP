@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/05 17:44:21 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/06 18:09:54 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ void	RequestHandler::_DefaultErrorPage(int status_code)
 						   "Content-Length: 0\r\n"
 						   "\r\n";
 
-	// send(client_fd, response.c_str(), response.length(), 0);
 }
 
 std::string RequestHandler::getResponse() const
@@ -75,7 +74,6 @@ void RequestHandler::_respond_with_error(int status_code, const std::string& sta
 {
 	std::string path = location.getErrorPage().at(status_code);
 
-	// std::cout << "Error page path: " << path << std::endl;
 	std::string html_content = _render_html(path);
 	std::stringstream ss;
 	ss << html_content.length();
@@ -88,8 +86,6 @@ void RequestHandler::_respond_with_error(int status_code, const std::string& sta
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
-	// std::cout << "Response: " << response << std::endl;
-	// send(socket, response.c_str(), response.length(), 0);
 }
 
 
@@ -108,7 +104,6 @@ void	RequestHandler::_respond_with_html(const std::string& path, int status_code
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
-	// send(socket, response.c_str(), response.length(), 0);
 }
 
 void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& location)
@@ -162,7 +157,6 @@ void	RequestHandler::_serveHtmlContent(const std::string& html_content, int stat
 						   "Content-Length: " + ss.str() + "\r\n"
 						   "\r\n" + html_content;
 
-	// send(client_fd, response.c_str(), response.length(), 0);
 }
 
 bool	compareLocations(const std::pair<size_t, Location>& a, const std::pair<size_t, Location>& b)
@@ -173,38 +167,13 @@ bool	compareLocations(const std::pair<size_t, Location>& a, const std::pair<size
 bool	RequestHandler::findMatchingLocation(const std::string& request_uri, Location& matched_location, size_t& matched_index)
 {
 	bool location_found;
-	// bool extension_found;
 
 	location_found = false;
-	// extension_found = false;
 
 	if (_config.locations.size() == 0)
 	{
 		return false;
 	}
-
-	// // search by extension (regex)
-	// if (request_uri.find_last_of('.') != std::string::npos)
-	// {
-	// 	std::string extension = request_uri.substr(request_uri.find_last_of('.'));
-	// 	for (size_t i = 0; i < _config.locations.size(); ++i)
-	// 	{
-	// 		if (extension == _config.locations[i].getLocationName())
-	// 		{
-	// 			for (size_t j = 0; j < _config.locations[i].getAllowedMethods().size(); ++j)
-	// 			{
-	// 				if (_request.getMethod() == _config.locations[i].getAllowedMethods()[j])
-	// 				{
-	// 					matched_location = _config.locations[i];
-	// 					matched_index = i;
-	// 					location_found = true;
-	// 					extension_found = true;
-	// 					break;
-	// 				}
-	// 			}
-	// 		}
-	// 	}	
-	// }
 
 	std::vector<std::pair<size_t, Location> > indexed_locations;
     for (size_t i = 0; i < _config.locations.size(); ++i) 
@@ -220,26 +189,10 @@ bool	RequestHandler::findMatchingLocation(const std::string& request_uri, Locati
 		const std::string& location_name = indexed_locations[i].second.getLocationName();
 		if (request_uri.find(location_name) == 0)
 		{
-			// if (extension_found == false)
-			// {
-					matched_location = indexed_locations[i].second;
-					matched_index = indexed_locations[i].first;
-					location_found = true;
-					return location_found;
-			// }
-			// else
-			// {
-			// 	for (size_t j = 0; j < indexed_locations[i].second.getAllowedMethods().size(); ++j)
-			// 	{
-			// 		if (_request.getMethod() == indexed_locations[i].second.getAllowedMethods()[j])
-			// 		{
-			// 			matched_location = indexed_locations[i].second;
-			// 			matched_index = indexed_locations[i].first;
-			// 			location_found = true;
-			// 			break;
-			// 		}
-			// 	}	
-			// }
+			matched_location = indexed_locations[i].second;
+			matched_index = indexed_locations[i].first;
+			location_found = true;
+			return location_found;
 		}
 	}
 	return location_found;
@@ -290,13 +243,8 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
 
     // // Construct the full path
 	std::string full_path;
-	// if (location.getRoot() != "www/cgi-bin")
-    	full_path = root + adjusted_uri;
-	// else
-	// {
-	// 	std::string 
-	// 	full_path = location.getCgiPath();
-	// }
+    full_path = root + adjusted_uri;
+
 
     return full_path;
 }
@@ -308,8 +256,8 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds)
     Location matched_location;
     size_t matched_index;
 
+
     // Find the matching location
-	// std::cout << "reading count: " << _reading_count << std::endl;
     bool location_found = findMatchingLocation(request_uri, matched_location, matched_index);
 
     if (!location_found) 
@@ -356,13 +304,8 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds)
 
     std::string full_path = buildRequestPath(matched_location, request_uri);
 
-	
-	std::cout << "Number of read Before to handle the request: " << monitor->getReadCount() << std::endl;
-	std::cout << "request : " << request_uri << std::endl;
     if (matched_location.getRoot() == "www/cgi-bin") 
     {
-		std::cout << "CGI REQUEST" << std::endl;
-		std::cout << "Number of read Before CGI: " << monitor->getReadCount() << std::endl;
         _handleCgiRequest(full_path, matched_location, request_uri, _socket, client_fds);
     }
     else if (request_method == "POST")

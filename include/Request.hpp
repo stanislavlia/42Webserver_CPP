@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:22 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/31 12:59:03 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/05 18:15:23 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,13 @@ class	Request
 		std::string _method;
 		std::string _uri;
 		std::map <std::string, std::string> _headers;
-		std::string _body;
+		// std::string _body;
+		std::vector<char> _body;
 		int			_valid;
 
 		void    parseHeaders(const std::string& headers);
-		void    parseBody(const std::string& body);
+		// void    parseBody(const std::string& body);
+		void    parseBody(const std::vector<char>& body);
 
 		void		validateRequest();
 	public:
@@ -44,8 +46,10 @@ class	Request
 		std::string	getMethod() const;
 		std::string	getUri() const;
 		std::map<std::string, std::string>	getHeaders() const;
-		std::string	getBody() const;
-		void	setBody(const std::string& body);
+		// std::string	getBody() const;
+		// void	setBody(const std::string& body);
+		std::vector<char>	getBody() const;
+		void	setBody(const std::vector<char>& body);
 		int			isValid() const;
 
 		std::vector<std::string> split(const std::string& str, const std::string& delimiter);

@@ -27,23 +27,20 @@ class Server
 		std::string						_host;
 		std::vector<struct sockaddr_in> _sock_address;
 		std::vector<int>				_server_fds;
-		// fd_set							read_fds;
-		// fd_set  						write_fds;
-		// fd_set  						copy_read_fds;
-		// fd_set  						copy_write_fds;
 		const std::string				_server_name;
 		int								matching_config;
-		std::string						response_to_client;
+		// std::string						response_to_client;
+		std::map<int, std::string>		response_to_client;
 
 		int		_create_server_socket();
 		void	_set_socket_options(int opt, int server_fd);
 		void	_setup_socketaddress(int port, int server_fd);
 		void	_listen_socket(int server_fd);
-		int		_accept_connection(int server_fd);
 
 		// =======================================
 
-		void	multiplexSocket(fd_set &copy_read_fds, fd_set &copy_write_fds, int &max_fd, std::vector<int> &client_fds);
+		void	multiplexSocket(int &max_fd, std::vector<int> &client_fds);
+		// void	multiplexSocket(fd_set &copy_read_fds, fd_set &copy_write_fds, int &max_fd, std::vector<int> &client_fds);
 		void  	addServerSocketsToReadFds(int& max_fd);
 		void  	addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd);
 		void	addClientSocketsToWriteFds(const std::vector<int>& client_fds, int& max_fd);

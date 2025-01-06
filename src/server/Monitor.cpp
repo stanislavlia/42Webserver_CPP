@@ -11,7 +11,6 @@ Monitor::Monitor() : reading_count(0), writing_count(0) {
 }
 
 void Monitor::addReadFd(int fd) {
-    std::cout << "fd added to read: " << fd << std::endl;
     FD_SET(fd, &read_fds);
 }
 
