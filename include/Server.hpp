@@ -9,7 +9,7 @@
 #include <signal.h>
 
 // enum ConnectionState { READ, WRITE };
-enum ConnectionState {READING, WRITING, CGI};
+enum ConnectionState {READING, WRITING, CHUNKED, CHUNKED_COMPLETE, CGI};
 
 class Server
 {  
@@ -49,11 +49,9 @@ class Server
 		void	processRequest(int client_fd, const std::map<int, int>& client_fd_to_port, std::vector<int>& client_fds);
 		void	handleWritableClientSockets(std::vector<int>& client_fds, std::map<int, int>& client_fd_to_port);
 		
-		int 	_waitForChildProcess(pid_t pid);
-
 		// ======================================= TEST MONITOR FUNCTIONS
 
-
+		bool    isRequestComplete(const std::string& request, int client_fd);
 	public:
 		// Server(struct sockaddr_in  *_sock_address, const std::vector<ServerParam>& server_param);
 		// Server(const std::vector<ServerParam>& server_param);
