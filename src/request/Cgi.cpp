@@ -227,9 +227,8 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
     {
         monitor->addCgiStatus(client_fd, status);
         monitor->addCgiPipe(client_fd, cgi_out[0]);
-        close(cgi_out[1]);
+        // close(cgi_out[1]);
         monitor->setCgiState(client_fd, CGI_READING);
-        std::cout << "CGI HAS BEEN EXECUTED" << std::endl;
     }
 	if (monitor->getReadCount(client_fd) > 0 && status == 0)
 	{

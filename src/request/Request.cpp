@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 14:07:22 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/07 20:48:34 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,11 +215,11 @@ void Request::parseRequest(const std::string& rawRequest)
         
         if (contentLengthIt != _headers.end())
         {
-            int contentLength = std::atoi(contentLengthIt->second.c_str());
-            std::vector<char> body(contentLength);
+            // int contentLength = std::atoi(contentLengthIt->second.c_str());
+            std::vector<char> body(rawRequest.begin() + rawRequest.find("\r\n\r\n") + 4, rawRequest.end());
             
-            requestStream.read(&body[0], contentLength);
-            // // Pass the body vector to parseBody instead of converting it to a string
+            requestStream.read(&body[0], rawRequest.size() - rawRequest.find("\r\n\r\n") - 4);
+            
             parseBody(body);
         }
         else if (transferEncodingIt != _headers.end() && transferEncodingIt->second.find("chunked\r") != std::string::npos)
@@ -242,7 +242,6 @@ void Request::parseRequest(const std::string& rawRequest)
                 chunkSizeStream >> std::hex >> chunkSize;
     
                 // If chunk size is 0, the transfer is done
-                std::cout << "Chunk size: " << chunkSize << std::endl;
                 if (chunkSize == 0)
                 {
                     break;
@@ -251,7 +250,6 @@ void Request::parseRequest(const std::string& rawRequest)
                 // Read the chunk data
                 std::vector<char> chunk(chunkSize);
                 requestStream.read(chunk.data(), chunkSize);
-                std::cout << "line: " << line << std::endl;
                 if (requestStream.gcount() != chunkSize)
                 {
                     std::cerr << "Error reading chunk data" << std::endl;

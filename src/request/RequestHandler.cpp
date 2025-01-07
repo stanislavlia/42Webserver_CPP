@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 23:07:53 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/07 20:51:28 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -249,7 +249,7 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
     return full_path;
 }
 
-void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd) 
+void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd, ConnectionState& connection_state) 
 {
     std::string request_uri = _request.getUri();
     std::string request_method = _request.getMethod();
@@ -257,7 +257,7 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd)
     size_t matched_index;
 
 
-    // Find the matching location
+    // Find the matching location 
     bool location_found = findMatchingLocation(request_uri, matched_location, matched_index);
 
     if (!location_found) 
@@ -310,12 +310,12 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd)
     }
     else if (request_method == "POST")
     {
-        _handlePostRequest(full_path, matched_location);
+        _handlePostRequest(full_path, matched_location, connection_state);
     } 
     else if (request_method == "DELETE") 
     {
         _handleDeleteRequest(full_path, matched_location);
-    } 
+    }
     else if (request_method == "GET")
     {
         _handleFileOrDirectoryRequest(full_path, request_uri, matched_location);

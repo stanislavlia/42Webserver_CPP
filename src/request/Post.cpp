@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 23:00:20 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/07 20:51:23 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ std::string RequestHandler::_ExtractBoundaryDelimiter()
 	return boundary_delimiter;
 }
 
-void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, const std::string& boundary_delimiter, const Location& location)
+void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, const std::string& boundary_delimiter, const Location& location, ConnectionState& connection_state)
 {
     // Convert the body vector to a string to use the split function
     std::string bodyStr(body.begin(), body.end());
@@ -97,9 +97,8 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
 
 				// Check if the file already exists
 				struct stat buffer;
-				if (stat(filePath.c_str(), &buffer) == 0)
+				if (stat(filePath.c_str(), &buffer) == 0 && connection_state != CHUNKED && connection_state != CHUNKED_COMPLETE)
     			{
-    			    std::cerr << "File already exists: " << fileName << std::endl;
     			    // append a number to the file name
     			    // count the number of files with the same name
     			    int count = 1;
@@ -126,27 +125,128 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
     			    }
     			}
 
-                std::ofstream outfile(filePath.c_str(), std::ios::binary);
-                if (outfile)
+				// find what has been already written in the file to no overwrite it and append the new content
+				std::ifstream infile(filePath.c_str(), std::ios::binary);
+				std::vector<char> existingContent;
+				
+				if (infile)
 				{
-                    // if (monitor->getWriteCount(client_fd) > 0)
-                    //     return;
-                    // monitor->incrementWriteCount();
-                    outfile.write(content.data(), content.size());
-                    outfile.close();
-                    _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
-                }
+				    infile.seekg(0, std::ios::end);
+				    size_t fileSize = infile.tellg();
+				    infile.seekg(0, std::ios::beg);
+				
+				    existingContent.resize(fileSize);
+				    infile.read(existingContent.data(), fileSize);
+				    infile.close();
+				}
+				
+				// Find the first null character in the existing content
+				size_t existingSize = existingContent.size();
+				size_t newSize = content.size();
+				size_t startPos = existingSize; // Start appending from the end of the existing content
+
+				// Find the position from where the new content starts
+				for (size_t i = 0; i < std::min(existingSize, newSize); ++i)
+				{
+				    if (existingContent[i] != content[i])
+				    {
+				        startPos = i;
+				        break;
+				    }
+				}
+
+				
+				std::ofstream outfile(filePath.c_str(), std::ios::binary | std::ios::app);
+				if (outfile)
+				{
+				    // Write the new content starting from the position where it differs from the existing content
+				    outfile.write(content.data() + startPos, newSize - startPos);
+				    outfile.close();
+				
+				    if (connection_state != CHUNKED)
+				        _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
+				}
 				else
 				{
-                    std::cerr << "Error opening file for writing: " << fileName << std::endl;
-                    _handleErrorPage(400, location);
-                }
+				    std::cerr << "Error opening file for writing: " << fileName << std::endl;
+				    _handleErrorPage(400, location);
+				}
+				// ------------------------------------------------------------
+				// std::ifstream infile(filePath.c_str(), std::ios::binary);
+				// std::vector<char> existingContent;
+				
+				// if (infile)
+				// {
+				//     infile.seekg(0, std::ios::end);
+				//     size_t fileSize = infile.tellg();
+				//     infile.seekg(0, std::ios::beg);
+				
+				//     existingContent.resize(fileSize);
+				//     infile.read(existingContent.data(), fileSize);
+				//     infile.close();
+				// }
+				
+				// size_t existingSize = existingContent.size();
+				// size_t newSize = content.size();
+				// size_t startPos = 0;
+				
+				// // Find the position from where the new content starts
+				// for (size_t i = 0; i < std::min(existingSize, newSize); ++i)
+				// {
+				//     if (existingContent[i] != content[i])
+				//     {
+				//         startPos = i;
+				//         break;
+				//     }
+				// }
+				
+				// std::cout << "existing size " << existingSize << std::endl;
+				// std::cout << "start pos = " << startPos << std::endl;
+				// std::ofstream outfile(filePath.c_str(), std::ios::binary | std::ios::app);
+				// if (outfile)
+				// {
+				//     Logger::logMsg(INFO, "Start to write to the file");		
+				//     // Write the new content starting from the position where it differs from the existing content
+				//     outfile.write(content.data() + startPos, newSize - startPos);
+				//     outfile.close();
+					
+				
+				// 	// if (newSize - startPos == 0)
+				// 	// {
+				// 	// 	connection_state = WRITING;
+				// 	// }
+				//     if (connection_state != CHUNKED)
+				//         _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
+				// }
+				// else
+				// {
+				//     std::cerr << "Error opening file for writing: " << fileName << std::endl;
+				//     _handleErrorPage(400, location);
+				// }
+				// ------------------------------------------------------------
+                // std::ofstream outfile(filePath.c_str(), std::ios::binary);
+                // if (outfile)
+				// {
+                //     // if (monitor->getWriteCount(client_fd) > 0)
+                //     //     return;
+                //     // monitor->incrementWriteCount();
+				// 	Logger::logMsg(INFO, "Start to write to the file");
+                //     outfile.write(content.data(), content.size());
+                //     outfile.close();
+				// 	if (connection_state != CHUNKED)
+				// 		_serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
+                // }
+				// else
+				// {
+                //     std::cerr << "Error opening file for writing: " << fileName << std::endl;
+                //     _handleErrorPage(400, location);
+                // }
             }
         }
     }
 }
 
-void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Location& location)
+void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Location& location, ConnectionState& connection_state)
 {
 	std::istringstream iss(_request.getHeaders().at("Content-Length"));
 	int	content_length;
@@ -210,6 +310,6 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
     	std::vector<char> newBody(bodyStr.begin(), bodyStr.end() - boundary_delimiter.length() - 6);
 
 
-		_ParseMultipartFormData(newBody, boundary_delimiter, location);
+		_ParseMultipartFormData(newBody, boundary_delimiter, location, connection_state);
 	}
 }

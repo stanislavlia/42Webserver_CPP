@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:58:30 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 22:59:37 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/07 14:29:43 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,9 @@ class RequestHandler
 
 		std::string	buildRequestPath(const Location& location, std::string& request_uri);
 		bool		findMatchingLocation(const std::string& request_uri, Location& matched_location, size_t& matched_index);
-		void		_ParseMultipartFormData(const std::vector<char>& body, const std::string& boundary_delimiter, const Location& location);
+		void		_ParseMultipartFormData(const std::vector<char>& body, const std::string& boundary_delimiter, const Location& location, ConnectionState& connection_state);
 		std::string	_ExtractBoundaryDelimiter();
-		void		_handlePostRequest(const std::string& rootDir, const Location& location);
+		void		_handlePostRequest(const std::string& rootDir, const Location& location, ConnectionState& connection_state);
 		void		_handleDeleteRequest(const std::string& full_path, const Location& location);
 		void		_handleFileOrDirectoryRequest(const std::string& full_path, const std::string& uri, const Location& location);
 		std::string	_render_html(const std::string& path);
@@ -75,7 +75,7 @@ class RequestHandler
 		~RequestHandler();
 
 
-		void    handleRequest(std::vector<int>& client_fds, int client_fd);
+		void    handleRequest(std::vector<int>& client_fds, int client_fd, ConnectionState& connection_state);
 		std::string getResponse() const;
 };
 
