@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/07 20:51:23 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/08 15:34:18 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,11 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
     // Convert the body vector to a string to use the split function
     std::string bodyStr(body.begin(), body.end());
 
+	// static int write_count = 0;
+	// write_count++;
+	// if (write_count < 1000 && connection_state != CHUNKED_COMPLETE)
+	// 	return;
+	// write_count = 0;
     // Split the body into parts based on the boundary delimiter
     std::vector<std::string> parts = _request.split(bodyStr, "--" + boundary_delimiter);
 
@@ -126,6 +131,7 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
     			}
 
 				// find what has been already written in the file to no overwrite it and append the new content
+				
 				std::ifstream infile(filePath.c_str(), std::ios::binary);
 				std::vector<char> existingContent;
 				
@@ -134,7 +140,6 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
 				    infile.seekg(0, std::ios::end);
 				    size_t fileSize = infile.tellg();
 				    infile.seekg(0, std::ios::beg);
-				
 				    existingContent.resize(fileSize);
 				    infile.read(existingContent.data(), fileSize);
 				    infile.close();
@@ -159,10 +164,8 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
 				std::ofstream outfile(filePath.c_str(), std::ios::binary | std::ios::app);
 				if (outfile)
 				{
-				    // Write the new content starting from the position where it differs from the existing content
 				    outfile.write(content.data() + startPos, newSize - startPos);
 				    outfile.close();
-				
 				    if (connection_state != CHUNKED)
 				        _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
 				}
@@ -307,9 +310,10 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
     	}
 
     	// Convert the string back to a vector of chars
-    	std::vector<char> newBody(bodyStr.begin(), bodyStr.end() - boundary_delimiter.length() - 6);
-
-
-		_ParseMultipartFormData(newBody, boundary_delimiter, location, connection_state);
+		if (!bodyStr.empty())
+		{
+    		std::vector<char> newBody(bodyStr.begin(), bodyStr.end() - boundary_delimiter.length() - 6);
+			_ParseMultipartFormData(newBody, boundary_delimiter, location, connection_state);
+		}
 	}
 }

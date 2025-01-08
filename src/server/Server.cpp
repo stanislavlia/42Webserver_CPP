@@ -158,6 +158,7 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 		int client_fd = client_fds[i];
 		if (FD_ISSET(client_fd, &monitor->getReadFds()))
 		{
+			// std::cout << "Reading from client_fd: " << client_fd << std::endl;
 			int valread = read(client_fd, buffer, BUFF_SIZE);
 			monitor->incrementReadCount(client_fd);
 			if (valread <= 0) 
@@ -173,9 +174,14 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 			else 
 			{
 				client_buffers[client_fd].append(buffer, valread);
-				if (isRequestComplete(client_buffers[client_fd], client_fd) == true || connection_states[client_fd] == CHUNKED || connection_states[client_fd] == CHUNKED_COMPLETE)
+				if (connection_states[client_fd] == CHUNKED || connection_states[client_fd] == CHUNKED_COMPLETE)
+				{
+					incrementWriteCount(client_fd);
+				}
+				if (isRequestComplete(client_buffers[client_fd], client_fd) == true || getWriteCount(client_fd) > 2500 || connection_states[client_fd] == CHUNKED_COMPLETE)
 				{
 					processRequest(client_fd, client_fd_to_port, client_fds);
+					write_count[client_fd] = 0;
 					if (connection_states[client_fd] == CHUNKED)
 					{
 						++i;
@@ -316,6 +322,7 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 					response_to_client[client_fd].clear();
 					client_address_map.erase(client_fd);
 					connection_states.erase(client_fd);
+					write_count.erase(client_fd);
 					i++;
 				} 
 				else
@@ -364,15 +371,33 @@ void Server::run()
 			// exit(1);
 			continue;
 		}
-		else if (activity == 0)
-		{
-			Logger::logMsg(INFO, "Timeout occurred");
-			continue;
-		}
+		// else if (activity == 0)
+		// {
+		// 	Logger::logMsg(INFO, "Timeout occurred");
+		// 	continue;
+		// }
 		monitor->resetCounts(); // Reset read/write counts
 
+		// std::cerr << "ERROR 1" << std::endl;
 		handleNewConnections(client_fds, client_fd_to_port, max_fd);
+		// std::cerr << "ERROR 2" << std::endl;
 		handleClientData(client_fds, client_fd_to_port, buffer);
+		// std::cerr << "ERROR 3" << std::endl;
 		handleWritableClientSockets(client_fds, client_fd_to_port);
 	}
+}
+
+void	Server::incrementWriteCount(int client_fd)
+{
+	write_count[client_fd]++;
+}
+
+int		Server::getWriteCount(int client_fd) const
+{
+	std::map<int, int>::const_iterator it = write_count.find(client_fd);
+	if (it != write_count.end())
+	{
+		return it->second;
+	}
+	return 0;
 }

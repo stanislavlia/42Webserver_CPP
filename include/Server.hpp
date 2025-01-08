@@ -29,6 +29,7 @@ class Server
 		std::vector<int>				_server_fds;
 		const std::string				_server_name;
 		int								matching_config;
+		std::map<int, int>				write_count;
 		// std::string						response_to_client;
 		std::map<int, std::string>		response_to_client;
 
@@ -59,6 +60,9 @@ class Server
 		// ~Server();
 		Server(Monitor* mon, const std::vector<ServerParam>& server_param);
 		~Server();
+
+		void	incrementWriteCount(int client_fd);
+		int		getWriteCount(int client_fd) const;
 		
 
 		void    setup_server();
