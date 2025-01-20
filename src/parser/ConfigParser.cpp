@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/01 13:58:42 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/19 15:40:49 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,16 @@ void	parseCgiPath(std::istringstream& iss, Location& location)
 	cgi_path = cgi_path.substr(1);
 	location.setCgiPath(cgi_path);
 }
+
+void	parseReturn(std::istringstream& iss, Location& location)
+{
+	std::string return_path;
+	std::getline(iss, return_path, ';');
+	return_path = return_path.substr(1);
+	location.setReturn(return_path);
+	std::cout << "location name: " << location.getLocationName() << std::endl;
+	std::cout << "return_path: " << location.getReturn() << std::endl;
+}
 // MAIN FUNCTION
 
 /**
@@ -187,9 +197,9 @@ std::vector<ServerParam>    ConfigParser::parse()
 		throw std::runtime_error("Unable to open config file: " + _configFile);
 	}
 	
-	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "cgi_path", "autoindex", "root", "allowed_methods" , "server", "}"};
+	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "cgi_path", "autoindex", "root", "allowed_methods" , "server", "return", "}"};
 	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseHost, parseClientMaxBodySize};
-	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage, parseLocationName, parseCgiPath};
+	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage, parseLocationName, parseCgiPath, parseReturn};
 	
 
 	std::string line;
@@ -264,6 +274,10 @@ std::vector<ServerParam>    ConfigParser::parse()
 						if (in_location_block)
 							functions_location[3](iss, current_location);
 					}
+						break;
+					case RETURN:
+						if (in_location_block)
+							functions_location[7](iss, current_location);
 						break;
 					case SERVER:
 						if (in_server_block)

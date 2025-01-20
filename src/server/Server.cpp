@@ -140,7 +140,6 @@ void	Server::handleNewConnections(std::vector<int>& client_fds, std::map<int, in
 				client_fd_to_port[new_socket] = server_fd_to_port[server_fd];
 				client_address_map[new_socket] = ntohs(client_address.sin_port);
 				connection_states[new_socket] = READING; // Initialize connection state
-				// FD_SET(new_socket, &monitor->getReadFds());
 				if (new_socket > max_fd) 
 				{
 					max_fd = new_socket;
@@ -158,7 +157,6 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 		int client_fd = client_fds[i];
 		if (FD_ISSET(client_fd, &monitor->getReadFds()))
 		{
-			// std::cout << "Reading from client_fd: " << client_fd << std::endl;
 			int valread = read(client_fd, buffer, BUFF_SIZE);
 			monitor->incrementReadCount(client_fd);
 			if (valread <= 0) 
@@ -368,21 +366,13 @@ void Server::run()
 		{
 			Logger::logMsg(ERROR, "Select error");
 			Logger::logMsg(ERROR, "Error code: %d", errno);
-			// exit(1);
 			continue;
 		}
-		// else if (activity == 0)
-		// {
-		// 	Logger::logMsg(INFO, "Timeout occurred");
-		// 	continue;
-		// }
-		monitor->resetCounts(); // Reset read/write counts
 
-		// std::cerr << "ERROR 1" << std::endl;
+		monitor->resetCounts();
+
 		handleNewConnections(client_fds, client_fd_to_port, max_fd);
-		// std::cerr << "ERROR 2" << std::endl;
 		handleClientData(client_fds, client_fd_to_port, buffer);
-		// std::cerr << "ERROR 3" << std::endl;
 		handleWritableClientSockets(client_fds, client_fd_to_port);
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 03:29:13 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/30 14:46:20 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/19 15:41:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ Location::Location(void)
 	this->allowedMethods = std::vector<std::string>();
 	this->autoIndex = false;
 	this->errorPage = std::map<int, std::string>();
+	this->is_redirect = false;	
+	this->redirect_path = "";
 }
 
 Location::Location(Location const &src)
@@ -43,6 +45,7 @@ Location &Location::operator=(Location const &rhs)
 		this->allowedMethods = rhs.allowedMethods;
 		this->autoIndex = rhs.autoIndex;
 		this->errorPage = rhs.errorPage;
+		this->redirect_path = rhs.redirect_path;
 	}
 	return (*this);
 }
@@ -54,6 +57,11 @@ Location::~Location(void)
 // END OF CANONICAL FORM
 
 // SETTERS
+
+void	Location::setReturn(const std::string& return_path)
+{
+	this->redirect_path = return_path;
+}
 
 void	Location::setLocationName(std::string location_name)
 {
@@ -104,6 +112,11 @@ void	Location::setCgiPath(std::string cgi_path)
 
 // GETTERS
 
+std::string	Location::getReturn(void) const
+{
+	return (this->redirect_path);
+}
+
 std::string	Location::getLocationName(void) const
 {
 	return (this->location_name);
@@ -143,4 +156,5 @@ std::string	Location::getCgiPath(void) const
 {
 	return (this->cgi_path);
 }
+
 // END OF GETTERS

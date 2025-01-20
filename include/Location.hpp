@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 03:25:34 by moetienn          #+#    #+#             */
-/*   Updated: 2024/12/30 14:46:05 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/19 15:00:24 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ class Location
 		std::vector<std::string>			allowedMethods;
 		bool								autoIndex;
 		std::map<int, std::string>			errorPage;
+		std::string							redirect_path;
+		bool								is_redirect;
 	
 	public:
 		Location(void);
@@ -44,6 +46,7 @@ class Location
 		void	setAllowedMethods(std::vector<std::string> allowedMethods);
 		void	setErrorPage(std::map<int, std::string> errorPage);
 		void	setClientMaxBodySize(int clientMaxBodySize);
+		void	setReturn(const std::string& return_path);
 		
 		// GETTERS
 		
@@ -55,6 +58,7 @@ class Location
 		std::vector<std::string>	getAllowedMethods(void) const;
 		std::map<int, std::string>	getErrorPage(void) const;
 		int							getClientMaxBodySize(void) const;
-}	;
+		std::string getReturn() const;
+};
 
 #endif
