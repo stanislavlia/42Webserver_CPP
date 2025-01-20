@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:08:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/06 12:57:50 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/20 12:21:11 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,8 +88,19 @@ std::string urlDecode(const std::string &value)
 void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path, const std::string& uri, const Location& location)
 {
 	std::string decoded_path = urlDecode(full_path);
+	bool is_return = false;
 	
 	struct stat path_stat;
+
+	if (!location.getReturn().empty())
+	{
+		std::string return_path = location.getReturn();
+		std::string root_path = location.getRoot();
+		std::string new_path = root_path + return_path;
+		decoded_path = new_path;
+		std::cout << "decoded_path: " << decoded_path << std::endl;
+		is_return = true;
+	}
 	if (stat(decoded_path.c_str(), &path_stat) == 0)
 	{
 		if (S_ISDIR(path_stat.st_mode))
@@ -115,9 +126,13 @@ void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path,
 			std::string extension = decoded_path.substr(decoded_path.find_last_of(".") + 1);
 			if (access(decoded_path.c_str(), R_OK) == 0)
 			{
-				if (extension == "html")
+				if (extension == "html" && is_return == false)
 				{
 					_respond_with_html(decoded_path.c_str(), 200, "OK");
+				}
+				else if (extension == "html" && is_return == true)
+				{
+					_respond_with_html(decoded_path.c_str(), 302, "OK");
 				}
 				else
         		{

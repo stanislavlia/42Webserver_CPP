@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/07 20:51:28 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/20 12:20:58 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,6 @@ void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& 
 	}
 	if (validation_code == 1 || validation_code == 3)
 	{
-		// 400 Bad Request
 		try {
 			_respond_with_error(400, "Bad Request", location);
 		}
@@ -131,7 +130,6 @@ void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& 
 	}
 	else if (validation_code == 2)
 	{
-		// 405 Method Not Allowed
 		try
 		{
 			_respond_with_error(405, "Method Not Allowed", location);
@@ -218,10 +216,11 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
 	{
         if (location.getIndex().empty())
 		{
-            return root;
+			return root;
         }
 		else
 		{
+			std::cout << "INDEX IS NOT EMPTY" << std::endl;
             return root + location.getIndex();
         }
     }
@@ -234,17 +233,14 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
 		// Check if the directory has an index file
 		if (!location.getIndex().empty())
 		{
-			// std::cout << "INDEX IS NOT EMPTY" << std::endl;
 			std::string index_path = root + adjusted_uri + location.getIndex();
 			return index_path;
 		}
 	}
 	
-
     // // Construct the full path
 	std::string full_path;
     full_path = root + adjusted_uri;
-
 
     return full_path;
 }
