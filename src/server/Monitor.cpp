@@ -42,27 +42,6 @@ fd_set& Monitor::getCopyWriteFds() {
     return copy_write_fds;
 }
 
-// void Monitor::incrementReadCount() {
-//     ++reading_count;
-// }
-
-// void Monitor::incrementWriteCount() {
-//     ++writing_count;
-// }
-
-// int Monitor::getReadCount() const {
-//     return reading_count;
-// }
-
-// int Monitor::getWriteCount() const {
-//     return writing_count;
-// }
-
-// void Monitor::resetCounts() {
-//     reading_count = 0;
-//     writing_count = 0;
-// }
-
 void    Monitor::incrementReadCount(int client_fd) {
     std::map<int, int>::iterator it = read_counts.find(client_fd);
     if (it != read_counts.end()) {
