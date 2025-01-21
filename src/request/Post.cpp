@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/08 15:34:18 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/20 12:26:00 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,6 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
     // Convert the body vector to a string to use the split function
     std::string bodyStr(body.begin(), body.end());
 
-	// static int write_count = 0;
-	// write_count++;
-	// if (write_count < 1000 && connection_state != CHUNKED_COMPLETE)
-	// 	return;
-	// write_count = 0;
-    // Split the body into parts based on the boundary delimiter
     std::vector<std::string> parts = _request.split(bodyStr, "--" + boundary_delimiter);
 
     for (size_t i = 0; i < parts.size(); i++)
@@ -174,76 +168,6 @@ void RequestHandler::_ParseMultipartFormData(const std::vector<char>& body, cons
 				    std::cerr << "Error opening file for writing: " << fileName << std::endl;
 				    _handleErrorPage(400, location);
 				}
-				// ------------------------------------------------------------
-				// std::ifstream infile(filePath.c_str(), std::ios::binary);
-				// std::vector<char> existingContent;
-				
-				// if (infile)
-				// {
-				//     infile.seekg(0, std::ios::end);
-				//     size_t fileSize = infile.tellg();
-				//     infile.seekg(0, std::ios::beg);
-				
-				//     existingContent.resize(fileSize);
-				//     infile.read(existingContent.data(), fileSize);
-				//     infile.close();
-				// }
-				
-				// size_t existingSize = existingContent.size();
-				// size_t newSize = content.size();
-				// size_t startPos = 0;
-				
-				// // Find the position from where the new content starts
-				// for (size_t i = 0; i < std::min(existingSize, newSize); ++i)
-				// {
-				//     if (existingContent[i] != content[i])
-				//     {
-				//         startPos = i;
-				//         break;
-				//     }
-				// }
-				
-				// std::cout << "existing size " << existingSize << std::endl;
-				// std::cout << "start pos = " << startPos << std::endl;
-				// std::ofstream outfile(filePath.c_str(), std::ios::binary | std::ios::app);
-				// if (outfile)
-				// {
-				//     Logger::logMsg(INFO, "Start to write to the file");		
-				//     // Write the new content starting from the position where it differs from the existing content
-				//     outfile.write(content.data() + startPos, newSize - startPos);
-				//     outfile.close();
-					
-				
-				// 	// if (newSize - startPos == 0)
-				// 	// {
-				// 	// 	connection_state = WRITING;
-				// 	// }
-				//     if (connection_state != CHUNKED)
-				//         _serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
-				// }
-				// else
-				// {
-				//     std::cerr << "Error opening file for writing: " << fileName << std::endl;
-				//     _handleErrorPage(400, location);
-				// }
-				// ------------------------------------------------------------
-                // std::ofstream outfile(filePath.c_str(), std::ios::binary);
-                // if (outfile)
-				// {
-                //     // if (monitor->getWriteCount(client_fd) > 0)
-                //     //     return;
-                //     // monitor->incrementWriteCount();
-				// 	Logger::logMsg(INFO, "Start to write to the file");
-                //     outfile.write(content.data(), content.size());
-                //     outfile.close();
-				// 	if (connection_state != CHUNKED)
-				// 		_serveHtmlContent("<h1>File uploaded successfully</h1>", 200, "OK");
-                // }
-				// else
-				// {
-                //     std::cerr << "Error opening file for writing: " << fileName << std::endl;
-                //     _handleErrorPage(400, location);
-                // }
             }
         }
     }

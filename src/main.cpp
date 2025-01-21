@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 10:13:42 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/03 13:39:05 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/20 12:29:12 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ int main(int ac, char **av)
 {
     Logger logger;
     
-    // Added this;
     if (ac != 2)
     {
         logger.logMsg(ERROR, "Usage: ./webserv <config_file>");

@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/07 20:48:34 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/20 12:26:30 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,10 +255,6 @@ void Request::parseRequest(const std::string& rawRequest)
                     std::cerr << "Error reading chunk data" << std::endl;
                     break;
                 }
-                // if (line.find("0\n\r\n\r") != std::string::npos)
-                // {
-                //     break;
-                // }
     
                 // Append chunk to body
                 body.insert(body.end(), chunk.begin(), chunk.end());
