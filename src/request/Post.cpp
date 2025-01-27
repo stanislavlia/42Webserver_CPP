@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/20 12:26:00 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 02:56:19 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 void	RequestHandler::_handleErrorPage(int status_code, const Location& location)
 {
-	std::cout << "Error: " << status_code << std::endl;
 	try 
 	{
 		_handleInvalidRequest(status_code, location);	

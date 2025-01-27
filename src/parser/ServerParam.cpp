@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 08:17:08 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/19 15:02:18 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 05:03:47 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,11 +104,6 @@ void	ServerParam::setHost(const char *host)
 	this->host = host;
 }
 
-// void	ServerParam::setErrorPage(std::map<int, std::string> errorPage)
-// {
-// 	this->errorPage = errorPage;
-// }
-
 // END OF SETTERS
 
 // GETTERS
@@ -122,11 +117,6 @@ std::string	ServerParam::getServerName(void) const
 {
 	return this->serverName;
 }
-
-// std::string ServerParam::getIndex(void) const
-// {
-// 	return this->index;
-// }
 
 std::map<int, std::string> ServerParam::getErrorPage(void) const
 {

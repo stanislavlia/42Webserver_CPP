@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/20 12:20:58 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 05:30:34 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,8 +91,8 @@ void RequestHandler::_respond_with_error(int status_code, const std::string& sta
 
 void	RequestHandler::_respond_with_html(const std::string& path, int status_code, const std::string& status_message)
 {
-	std::string html_content = _render_html(path); //need to add exceptions
-
+	std::string html_content = _render_html(path);
+	
 	std::stringstream ss;
 	ss << html_content.length();
 
@@ -108,7 +108,6 @@ void	RequestHandler::_respond_with_html(const std::string& path, int status_code
 
 void	RequestHandler::_handleInvalidRequest(int validation_code, const Location& location)
 {
-	std::cout << "Validation code: " << validation_code << std::endl;
 	if (validation_code == 400)
 	{
 		validation_code = 1;
@@ -181,7 +180,6 @@ bool	RequestHandler::findMatchingLocation(const std::string& request_uri, Locati
 
 	std::sort(indexed_locations.begin(), indexed_locations.end(), compareLocations);
 
-	// search by location name (static)
 	for (size_t i = 0; i < indexed_locations.size(); ++i)
 	{
 		const std::string& location_name = indexed_locations[i].second.getLocationName();
@@ -203,15 +201,12 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
     std::string location_name = location.getLocationName();
     std::string adjusted_uri = request_uri;
 
-    // Check if the request URI starts with the location name
     if (request_uri.find(location_name) == 0)
 	{
-        // Remove the location name from the request URI
 		if (location_name != "/")
         	adjusted_uri = request_uri.substr(location_name.length());
     }
 
-    // If the adjusted URI is empty or "/", return the root or the root plus index
     if (adjusted_uri.empty() || adjusted_uri == "/")
 	{
         if (location.getIndex().empty())
@@ -220,17 +215,14 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
         }
 		else
 		{
-			std::cout << "INDEX IS NOT EMPTY" << std::endl;
             return root + location.getIndex();
         }
     }
 
 	struct stat path_stat;
 
-	// Check if the adjusted URI is a directory
 	if (stat((root + adjusted_uri).c_str(), &path_stat) == 0 && S_ISDIR(path_stat.st_mode))\
 	{
-		// Check if the directory has an index file
 		if (!location.getIndex().empty())
 		{
 			std::string index_path = root + adjusted_uri + location.getIndex();
@@ -238,7 +230,6 @@ std::string RequestHandler::buildRequestPath(const Location& location, std::stri
 		}
 	}
 	
-    // // Construct the full path
 	std::string full_path;
     full_path = root + adjusted_uri;
 
@@ -253,7 +244,6 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd, 
     size_t matched_index;
 
 
-    // Find the matching location 
     bool location_found = findMatchingLocation(request_uri, matched_location, matched_index);
 
     if (!location_found) 
@@ -270,8 +260,6 @@ void	RequestHandler::handleRequest(std::vector<int>& client_fds, int client_fd, 
         return;
     }
 
-
-    // Check if the request method is allowed
     std::vector<std::string> allowed_methods = _config.locations[matched_index].getAllowedMethods();
     bool method_allowed = false;
 

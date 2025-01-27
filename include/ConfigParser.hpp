@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/19 15:40:49 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 05:02:47 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ enum FunctionType {
 	ALLOWED_METHODS,
 	SERVER,
 	RETURN,
+	CGI_EXTENSION,
+	CGI_INTERPRETER,
 	BRACKET,
 	UNKNOWN,
 	TOKEN_COUNT

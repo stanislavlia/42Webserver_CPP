@@ -347,8 +347,19 @@ void Server::multiplexSocket(int &max_fd, std::vector<int> &client_fds)
 
 }
 
+void	signal_handler(int signum)
+{
+	if (signum == SIGINT || signum == SIGTERM)
+	{
+		Logger::logMsg(INFO, "Received signal %d, shutting down server", signum);
+		exit(0);
+	}
+}
+
 void Server::run()
 {
+	signal(SIGINT, signal_handler);
+	signal(SIGTERM, signal_handler);
 	char buffer[BUFF_SIZE] = {0};
 	int activity;
 	int max_fd = 0;

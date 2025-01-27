@@ -10,8 +10,6 @@ def parse_post_data():
     return urllib.parse.parse_qs(post_data)
 
 def main():
-    # Print the HTTP header
-    print("Content-Type: text/html\n")
 
     # Parse the POST data
     post_params = parse_post_data()

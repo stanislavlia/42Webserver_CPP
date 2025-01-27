@@ -15,7 +15,6 @@ void alarm_handler(int signum, siginfo_t *info, void *context)
 	(void)signum;
 	(void)context;
 	pid_t pid = info->si_pid;
-    std::cout << "alarm TRIGGERED" << std::endl;
     if (pid > 0)
     {
         kill(pid, SIGKILL);
@@ -70,7 +69,6 @@ void	RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 	}
 	else if (access(file_path.c_str(), F_OK) != 0)
 	{
-        std::cout << "File not found" << std::endl;
 		try
 		{
 			_respond_with_error(404, "Not Found", location);
@@ -133,7 +131,7 @@ void RequestHandler::setContentLength(std::string& content_length)
     }
 }
 
-pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], const std::string& script_name, const std::vector<std::string>& env_vars)
+pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], const std::string& script_name, const std::vector<std::string>& env_vars, const std::string& interpreter)
 {
     pid_t pid = fork();
     if (pid == -1)
@@ -144,7 +142,6 @@ pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], con
 
     if (pid == 0)
     {
-        // Child process
         close(cgi_out[0]);
         dup2(cgi_out[1], STDOUT_FILENO);
         close(cgi_out[1]);
@@ -160,7 +157,6 @@ pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], con
         }
         env_vars_cstr.push_back(NULL);
 
-        std::string interpreter = "/usr/bin/python3";
         char *exec_args[] = {
             const_cast<char*>(interpreter.c_str()),
             const_cast<char*>(script_name.c_str()),
@@ -178,10 +174,8 @@ void RequestHandler::writePostDataToChild(int cgi_in[2], int client_fd)
 {
     if (_request.getMethod() == "POST")
     {
-        // Parent process
         close(cgi_in[0]);
 
-        // Write the POST data to the child's stdin
         write(cgi_in[1], _request.getBody().data(), _request.getBody().size());
         close(cgi_in[1]);
         monitor->incrementWriteCount(client_fd);
@@ -227,7 +221,6 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
     {
         monitor->addCgiStatus(client_fd, status);
         monitor->addCgiPipe(client_fd, cgi_out[0]);
-        // close(cgi_out[1]);
         monitor->setCgiState(client_fd, CGI_READING);
     }
 	if (monitor->getReadCount(client_fd) > 0 && status == 0)
@@ -236,12 +229,101 @@ void RequestHandler::handleCgiResponse(int cgi_out[2], pid_t pid, const std::str
 	}
 }
 
+bool    RequestHandler::firstErrorCheck(const std::string& full_path, const Location& location)
+{
+    std::string file_path;
+
+    size_t pos = full_path.find("?");
+    if (pos != std::string::npos)
+    {
+        file_path = full_path.substr(0, pos);
+    }
+    else
+    {
+        file_path = full_path;
+    }
+    if (location.getAllowedExtensions().size() > 0)
+    {
+        bool allowed = false;
+        for (size_t i = 0; i < location.getAllowedExtensions().size(); i++)
+        {
+            if (full_path.find(location.getAllowedExtensions()[i]) != std::string::npos)
+            {
+                allowed = true;
+                break;
+            }
+        }
+        if (!allowed)
+        {
+            try
+            {
+                _respond_with_error(403, "Forbidden", location);
+            }
+            catch (std::exception& e)
+            {
+                _DefaultErrorPage(403);
+            }
+            return true;
+        }
+    }
+    if (access(file_path.c_str(), F_OK) != 0)
+    {
+        try
+        {
+            _respond_with_error(404, "Not Found", location);
+        }
+        catch (std::exception& e)
+        {
+            _DefaultErrorPage(404);
+        }
+        return true;
+    }
+    else if (access(file_path.c_str(), X_OK) != 0 || access(file_path.c_str(), R_OK) != 0)
+    {
+        try
+        {
+            _respond_with_error(403, "Forbidden", location);
+        }
+        catch (std::exception& e)
+        {
+            _DefaultErrorPage(403);
+        }
+        return true;
+    }
+    return false;
+}
+
 void RequestHandler::_handleCgiRequest(const std::string& full_path, const Location& location, const std::string& request_uri, int client_fd, std::vector<int>& client_fds)
 {
     std::string                 script_name;
     std::string                 content_length;
     std::vector<std::string>    env_vars;
     std::string                 query_string;
+    std::string file_path = full_path.substr(0, full_path.find("?"));
+    std::string extension = file_path.substr(file_path.find_last_of("."));
+    std::string interpreter;
+
+    if (firstErrorCheck(full_path, location) == true)
+    {
+        return ;
+    }
+
+    try
+    {
+        interpreter = location.getCgiInterpreter().at(extension);
+    }
+    catch (const std::out_of_range& e)
+    {
+        try
+        {
+            _respond_with_error(500, "Internal Server Error", location);
+        }
+        catch (std::exception& e)
+        {
+            _DefaultErrorPage(500);
+        }
+        return ;
+    }
 
     setContentLength(content_length);
     parseFullPath(full_path, script_name, query_string);
@@ -253,13 +335,14 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
     env_vars.push_back("CONTENT_LENGTH=" + content_length);
     env_vars.push_back("HTTP_HOST=localhost");
     env_vars.push_back("SERVER_PROTOCOL=HTTP/1.1");
+    env_vars.push_back("USER=" + std::string(getenv("USER")));
 
     int cgi_in[2];
     int cgi_out[2];
     createPipes(cgi_in, cgi_out);
     monitor->setCgiState(client_fd, CGI_INIT);
 
-    pid_t pid = forkAndExecuteCgiScript(cgi_in, cgi_out, script_name, env_vars);
+    pid_t pid = forkAndExecuteCgiScript(cgi_in, cgi_out, script_name, env_vars, interpreter);
     monitor->setCgiState(client_fd, CGI_WRITING);
 
     writePostDataToChild(cgi_in, client_fd);
