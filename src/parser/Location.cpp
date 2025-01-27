@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 03:29:13 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/19 15:41:30 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 04:39:31 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ Location::Location(void)
 	this->location_name = "";
 	this->clientMaxBodySize = 0;
 	this->cgi_path = "";
+	this->cgi_extension = "";
 	this->index = "";
 	this->root = "";
 	this->allowedMethods = std::vector<std::string>();
@@ -26,6 +27,8 @@ Location::Location(void)
 	this->errorPage = std::map<int, std::string>();
 	this->is_redirect = false;	
 	this->redirect_path = "";
+	this->allowedExtensions = std::vector<std::string>();
+	this->cgi_intepreter = std::map<std::string, std::string>();
 }
 
 Location::Location(Location const &src)
@@ -46,12 +49,19 @@ Location &Location::operator=(Location const &rhs)
 		this->autoIndex = rhs.autoIndex;
 		this->errorPage = rhs.errorPage;
 		this->redirect_path = rhs.redirect_path;
+		this->cgi_extension = rhs.cgi_extension;
+		this->allowedExtensions = rhs.allowedExtensions;
+		this->cgi_intepreter = rhs.cgi_intepreter;
 	}
 	return (*this);
 }
 
 Location::~Location(void)
 {
+	cgi_intepreter.clear();
+    allowedExtensions.clear();
+	errorPage.clear();
+	allowedMethods.clear();
 }
 
 // END OF CANONICAL FORM
@@ -108,6 +118,16 @@ void	Location::setCgiPath(std::string cgi_path)
 	this->cgi_path = cgi_path;
 }
 
+void	Location::setAllowedExtension(std::vector<std::string> allowedExtensions)
+{
+	this->allowedExtensions = allowedExtensions;
+}
+
+void	Location::setCgiInterperter(std::map<std::string, std::string> cgi_intepreter)
+{
+	this->cgi_intepreter = cgi_intepreter;
+}
+
 // END OF SETTERS
 
 // GETTERS
@@ -155,6 +175,21 @@ int	Location::getClientMaxBodySize(void) const
 std::string	Location::getCgiPath(void) const
 {
 	return (this->cgi_path);
+}
+
+std::vector<std::string>	Location::getAllowedExtensions(void) const
+{
+	return (this->allowedExtensions);
+}
+
+std::map<std::string, std::string> Location::getCgiInterpreter(void) const
+{
+    return (this->cgi_intepreter);
+}
+
+void   Location::AddCgiInterpreter(std::string extension, std::string interpreter)
+{
+	this->cgi_intepreter[extension] = interpreter;
 }
 
 // END OF GETTERS

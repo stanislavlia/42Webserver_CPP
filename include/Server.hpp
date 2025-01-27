@@ -30,7 +30,6 @@ class Server
 		const std::string				_server_name;
 		int								matching_config;
 		std::map<int, int>				write_count;
-		// std::string						response_to_client;
 		std::map<int, std::string>		response_to_client;
 
 		int		_create_server_socket();
@@ -41,7 +40,6 @@ class Server
 		// =======================================
 
 		void	multiplexSocket(int &max_fd, std::vector<int> &client_fds);
-		// void	multiplexSocket(fd_set &copy_read_fds, fd_set &copy_write_fds, int &max_fd, std::vector<int> &client_fds);
 		void  	addServerSocketsToReadFds(int& max_fd);
 		void  	addClientSocketsToReadFds(const std::vector<int>& client_fds, int& max_fd);
 		void	addClientSocketsToWriteFds(const std::vector<int>& client_fds, int& max_fd);
@@ -54,10 +52,6 @@ class Server
 
 		bool    isRequestComplete(const std::string& request, int client_fd);
 	public:
-		// Server(struct sockaddr_in  *_sock_address, const std::vector<ServerParam>& server_param);
-		// Server(const std::vector<ServerParam>& server_param);
-		// Server();
-		// ~Server();
 		Server(Monitor* mon, const std::vector<ServerParam>& server_param);
 		~Server();
 

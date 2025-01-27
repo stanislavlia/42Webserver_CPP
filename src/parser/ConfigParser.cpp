@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/09 11:52:22 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/19 15:40:49 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 05:03:24 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,6 @@ void	parseLocationName(std::istringstream& iss, Location& location)
 	std::getline(iss, location_name, ';');
 	location_full = location_name.substr(1);
 	location_name = location_full.substr(0, location_full.size() - 1);
-	// check if the first character is a space
 	location_name.erase(location_name.find_last_not_of(" \t\n\r\f\v") + 1);
 	location.setLocationName(location_name);
 }
@@ -124,11 +123,9 @@ void	parseErrorPage(std::istringstream& iss, Location& location)
 	std::string error_code_str;
 	std::string error_path;
 
-	// Read the error code and error path
 	iss >> error_code_str;
 	std::getline(iss, error_path, ';');
 
-	// Remove leading whitespace from error_path
 	error_path = error_path.substr(1);
 
 	int error_code = std::atoi(error_code_str.c_str());
@@ -164,9 +161,41 @@ void	parseReturn(std::istringstream& iss, Location& location)
 	std::getline(iss, return_path, ';');
 	return_path = return_path.substr(1);
 	location.setReturn(return_path);
-	std::cout << "location name: " << location.getLocationName() << std::endl;
-	std::cout << "return_path: " << location.getReturn() << std::endl;
 }
+
+void parseCgiExtension(std::istringstream& iss, Location& location)
+{
+    std::string extensions;
+    std::getline(iss, extensions, ';');
+    extensions = extensions.substr(1);
+    std::vector<std::string> allowed_extensions;
+    std::string extension;
+    std::istringstream iss_extensions(extensions);
+    while (std::getline(iss_extensions, extension, ' '))
+    {
+        if (!extension.empty())
+            allowed_extensions.push_back(extension);
+    }
+    location.setAllowedExtension(allowed_extensions);
+	
+}
+
+void parseCgiInterperter(std::istringstream& iss, Location& location)
+{
+    std::string line;
+    std::getline(iss, line, ';');
+    line = line.substr(1);
+    
+    std::istringstream iss_line(line);
+    std::string extension, interpreter;
+    
+    iss_line >> extension >> interpreter;
+    
+    if (!extension.empty() && !interpreter.empty()) {
+        location.AddCgiInterpreter(extension, interpreter);
+    }
+}
+
 // MAIN FUNCTION
 
 /**
@@ -181,6 +210,7 @@ void	parseReturn(std::istringstream& iss, Location& location)
  * - autoindex
  * - root
  * - allowed_methods
+ * - cgi_path
  * - }
  * 
  *  @return std::vector<ServerParam> servers
@@ -197,9 +227,9 @@ std::vector<ServerParam>    ConfigParser::parse()
 		throw std::runtime_error("Unable to open config file: " + _configFile);
 	}
 	
-	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "cgi_path", "autoindex", "root", "allowed_methods" , "server", "return", "}"};
+	std::string tokens[TOKEN_COUNT] = {"listen", "server_name", "Host" ,"client_max_body_size" , "index", "error_page", "location", "cgi_path", "autoindex", "root", "allowed_methods" , "server", "return", "cgi_extension", "cgi_interpreter" , "}"};
 	void (*functions[TOKEN_COUNT])(std::istringstream&, ServerParam&) = {parseListen, parseServerName, parseHost, parseClientMaxBodySize};
-	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage, parseLocationName, parseCgiPath, parseReturn};
+	void (*functions_location[TOKEN_COUNT])(std::istringstream&, Location&) = {parseIndex, parseAutoIndex, parseRoot, parseAllowedMethods, parseErrorPage, parseLocationName, parseCgiPath, parseReturn, parseCgiExtension, parseCgiInterperter};
 	
 
 	std::string line;
@@ -257,6 +287,18 @@ std::vector<ServerParam>    ConfigParser::parse()
 							functions_location[6](iss, current_location);
 					}
 						break;
+					case CGI_EXTENSION:
+					{
+						if (in_location_block)
+							functions_location[8](iss, current_location);
+					}
+						break;
+					case CGI_INTERPRETER:
+					{
+						if (in_location_block)
+							functions_location[9](iss, current_location);
+					}
+						break;
 					case AUTOINDEX:
 					{
 						if (in_location_block)
@@ -291,7 +333,6 @@ std::vector<ServerParam>    ConfigParser::parse()
 						if (in_location_block)
 						{
 							current_server.addLocation(current_location);
-							// current_location = Location();
 							in_location_block = false;
 						}
 						else if (in_server_block)

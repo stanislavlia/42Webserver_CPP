@@ -91,18 +91,14 @@ void Server::setup_server()
 
         _server_fds.push_back(server_fd);
 
-        // set socket options
         _set_socket_options(1, _server_fds[i]);
 
-        // setup socket address and bind
         _setup_socketaddress(_ports[i], _server_fds[i]);
 
-        // listen socket
         _listen_socket(_server_fds[i]);
 
         server_fd_to_port[_server_fds[i]] = _ports[i];
 
-        // Add the server fd to the monitor read_fds
         monitor->addReadFd(_server_fds[i]);
     }
     if (_server_fds.empty())

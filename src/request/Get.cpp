@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/18 12:08:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/21 08:47:03 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 05:29:41 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ std::string	_generateDirectoryListing(const std::string& path, const std::string
 		
 		while ((entry = readdir(dir)) != NULL)
 		{
-			if (entry->d_name[0] != '.') // Skip hidden files
+			if (entry->d_name[0] != '.')
 			{
 				if (entry->d_type == DT_DIR)
 				{
@@ -59,7 +59,6 @@ void	RequestHandler::_handleDirectoryListing(const std::string& path, const std:
 }
 
 
-// Function to decode URL-encoded strings (e.g. %20 -> ' ')
 std::string urlDecode(const std::string &value)
 {
     std::ostringstream decoded;
@@ -93,13 +92,12 @@ void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path,
 
 	if (!location.getReturn().empty())
 	{
-		// Handle redirect with 302 status code
 		std::stringstream ss;
 		ss << "HTTP/1.1 302 Found\r\n";
 		ss << "Location: " << location.getReturn() << "\r\n";
 		ss << "Content-Length: 0\r\n\r\n";
 		response = ss.str();
-		return;  // return to avoid further processing
+		return;
 	}
 
 	if (stat(decoded_path.c_str(), &path_stat) == 0)
@@ -133,11 +131,9 @@ void	RequestHandler::_handleFileOrDirectoryRequest(const std::string& full_path,
 				}
 				else
         		{
-					// Download file
             		std::ifstream file(decoded_path.c_str(), std::ios::binary);
             		if (file)
             		{
-            		    // Get the file size
             		    file.seekg(0, std::ios::end);
             		    std::streamsize fileSize = file.tellg();
             		    file.seekg(0, std::ios::beg);

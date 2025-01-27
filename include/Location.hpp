@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/17 03:25:34 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/19 15:00:24 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 05:02:32 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,9 @@ class Location
 		std::map<int, std::string>			errorPage;
 		std::string							redirect_path;
 		bool								is_redirect;
+		std::string							cgi_extension;
+		std::map<std::string, std::string>	cgi_intepreter;
+		std::vector<std::string>			allowedExtensions;
 	
 	public:
 		Location(void);
@@ -47,6 +50,8 @@ class Location
 		void	setErrorPage(std::map<int, std::string> errorPage);
 		void	setClientMaxBodySize(int clientMaxBodySize);
 		void	setReturn(const std::string& return_path);
+		void	setAllowedExtension(std::vector<std::string> allowedExtensions);
+		void	setCgiInterperter(std::map<std::string, std::string> cgi_intepreter);
 		
 		// GETTERS
 		
@@ -59,6 +64,9 @@ class Location
 		std::map<int, std::string>	getErrorPage(void) const;
 		int							getClientMaxBodySize(void) const;
 		std::string getReturn() const;
+		std::vector<std::string> getAllowedExtensions() const;
+		std::map<std::string, std::string> getCgiInterpreter() const;
+		void	AddCgiInterpreter(std::string extension, std::string interpreter);
 };
 
 #endif
