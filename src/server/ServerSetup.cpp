@@ -6,15 +6,41 @@
 #include <dirent.h>
 
 
+// Server::Server(Monitor* mon, const std::vector<ServerParam>& server_param)
+// : monitor(mon), configs(server_param)
+// {
+//     Logger::logMsg(DEBUG, "Server initialized");
+//     _host_to_port = std::map<std::string, int>();
+//     for (size_t i = 0; i < server_param.size(); i++)
+//     {
+//         _ports.push_back(server_param[i].getPort());
+//         _host = server_param[0].getHost();
+//         std::cout << "HOST: " << _host << std::endl;
+//         std::cout << "PORT: " << _ports[i] << std::endl;
+//     }
+// }
+
 Server::Server(Monitor* mon, const std::vector<ServerParam>& server_param)
 : monitor(mon), configs(server_param)
 {
     Logger::logMsg(DEBUG, "Server initialized");
+    _host_to_port = std::map<std::string, int>();
+
     for (size_t i = 0; i < server_param.size(); i++)
     {
-        _ports.push_back(server_param[i].getPort());
-        _host = server_param[0].getHost();
-        std::cout << "PORT: " << _ports[i] << std::endl;
+        std::string host = server_param[i].getHost();
+        int port = server_param[i].getPort();
+
+        if (_host_to_port.find(host) != _host_to_port.end() && _host_to_port[host] == port)
+        {
+            _host_to_port.erase(host);
+        }
+        else
+        {
+            _host_to_port[host] = port;
+            _ports.push_back(port);
+            _host = host;
+        }
     }
 }
 

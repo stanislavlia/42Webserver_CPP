@@ -80,6 +80,7 @@ void	RequestHandler::_handleCgiError(const std::string& request_uri, const Locat
 	}
 	else if (access(file_path.c_str(), X_OK) != 0 || access(file_path.c_str(), R_OK) != 0)
 	{
+        std::cout << "forbidden" << std::endl;
 		try
 		{
 			_respond_with_error(403, "Forbidden", location);
@@ -254,6 +255,7 @@ bool    RequestHandler::firstErrorCheck(const std::string& full_path, const Loca
         }
         if (!allowed)
         {
+            std::cout << "allowed extensions" << std::endl;
             try
             {
                 _respond_with_error(403, "Forbidden", location);
@@ -279,6 +281,7 @@ bool    RequestHandler::firstErrorCheck(const std::string& full_path, const Loca
     }
     else if (access(file_path.c_str(), X_OK) != 0 || access(file_path.c_str(), R_OK) != 0)
     {
+        std::cout << "forbidden 2" << std::endl;
         try
         {
             _respond_with_error(403, "Forbidden", location);

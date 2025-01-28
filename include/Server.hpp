@@ -31,6 +31,7 @@ class Server
 		int								matching_config;
 		std::map<int, int>				write_count;
 		std::map<int, std::string>		response_to_client;
+		std::map<std::string, int> 		_host_to_port;
 
 		int		_create_server_socket();
 		void	_set_socket_options(int opt, int server_fd);

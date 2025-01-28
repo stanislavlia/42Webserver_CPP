@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: moetienn <moetienn@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/28 06:37:19 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 11:10:53 by moetienn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,7 +167,7 @@ void restoreBody(std::vector<char>& body)
     while (pos < body.size())
     {
         // Find the position of the next chunk size
-        std::vector<char>::iterator chunkSizeEndIt = std::search(body.begin() + pos, body.end(), "\r\n", "\r\n" + 2);
+        std::vector<char>::iterator chunkSizeEndIt = std::search(body.begin() + pos, body.end(), "\r\n", "\r\n");
         if (chunkSizeEndIt == body.end())
             break;
 
