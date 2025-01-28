@@ -159,7 +159,7 @@ void	Server::handleClientData(std::vector<int>& client_fds, std::map<int, int>& 
 		{
 			int valread = read(client_fd, buffer, BUFF_SIZE);
 			monitor->incrementReadCount(client_fd);
-			if (valread <= 0) 
+			if (valread <= 0)
 			{
 				close(client_fd);
 				FD_CLR(client_fd, &monitor->getReadFds());
@@ -223,6 +223,13 @@ void	Server::processRequest(int client_fd, const std::map<int, int>& client_fd_t
 
 	Request request(configs[matching_config]);
 	request.parseRequest(client_buffers[client_fd]);
+
+	if (request.isValid() == 4) 
+	{
+		Logger::logMsg(ERROR, "Invalid request");
+		connection_states[client_fd] = WRITING;
+	}
+
 	RequestHandler handler(client_fd, request, configs[matching_config], monitor);
 	handler.handleRequest(client_fds, client_fd, connection_states[client_fd]);
 	if (connection_states[client_fd] == CHUNKED)
@@ -274,7 +281,9 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 				}
 			}
 			if (monitor->getWriteCount(client_fd) > 0)
+			{
 				return ;
+			}
 			monitor->incrementWriteCount(client_fd);
 			size_t total_length = response_to_client[client_fd].length();
 
@@ -287,7 +296,7 @@ void	Server::handleWritableClientSockets(std::vector<int>& client_fds, std::map<
 			const char* data_to_send = response_to_client[client_fd].c_str() + bytes_sent[client_fd];
 
 			ssize_t sent = send(client_fd, data_to_send, remaining_data, 0);
-			if (sent <= 0) 
+			if (sent <= 0)
 			{
 				Logger::logMsg(ERROR, "Send error");
 				close(client_fd);

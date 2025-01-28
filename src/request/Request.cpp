@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/11 07:10:19 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/20 12:26:30 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 06:37:19 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,18 @@ void	Request::validateRequest()
                 _valid = 2;
                 return ;
             }
+        }
+    }
+    if (_headers.find("Content-Length") != _headers.end())
+    {
+        std::istringstream iss(_headers.at("Content-Length"));
+        int content_length;
+        iss >> content_length;
+
+        if (content_length > _config.getClientMaxBodySize() * 1024 * 1024)
+        {
+            _valid = 4;
+            return ;
         }
     }
     _valid = 0;
@@ -215,7 +227,6 @@ void Request::parseRequest(const std::string& rawRequest)
         
         if (contentLengthIt != _headers.end())
         {
-            // int contentLength = std::atoi(contentLengthIt->second.c_str());
             std::vector<char> body(rawRequest.begin() + rawRequest.find("\r\n\r\n") + 4, rawRequest.end());
             
             requestStream.read(&body[0], rawRequest.size() - rawRequest.find("\r\n\r\n") - 4);

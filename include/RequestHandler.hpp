@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:58:30 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/28 05:02:08 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 06:10:48 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ class RequestHandler
 		void		setContentLength(std::string& content_length);
 		void		createPipes(int pipefd[2], int stdin_pipe[2]);
 		pid_t		forkAndExecuteCgiScript(int pipefd[2], int stdin_pipe[2], const std::string& script_name, const std::vector<std::string>& env_vars, const std::string& interpreter);
-		void		writePostDataToChild(int stdin_pipe[2], int client_fd);
+		void		writePostDataToChild(int stdin_pipe[2]);
 		void		handleCgiResponse(int pipefd[2], pid_t pid, const std::string& request_uri, const Location& location, int client_fd, std::vector<int>& client_fds);
 		int			_waitForChildProcess(pid_t pid);
 		void		_handleCgiError(const std::string& request_uri, const Location& location, int status);
