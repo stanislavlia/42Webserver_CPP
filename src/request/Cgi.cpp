@@ -170,7 +170,7 @@ pid_t RequestHandler::forkAndExecuteCgiScript(int cgi_in[2], int cgi_out[2], con
     return pid;
 }
 
-void RequestHandler::writePostDataToChild(int cgi_in[2], int client_fd)
+void RequestHandler::writePostDataToChild(int cgi_in[2])
 {
     if (_request.getMethod() == "POST")
     {
@@ -178,7 +178,6 @@ void RequestHandler::writePostDataToChild(int cgi_in[2], int client_fd)
 
         write(cgi_in[1], _request.getBody().data(), _request.getBody().size());
         close(cgi_in[1]);
-        monitor->incrementWriteCount(client_fd);
     }
 }
 
@@ -325,6 +324,11 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
         return ;
     }
 
+    if (_request.getMethod() == "POST")
+    {
+        monitor->incrementWriteCount(client_fd);
+    }
+
     setContentLength(content_length);
     parseFullPath(full_path, script_name, query_string);
     env_vars.push_back("REQUEST_METHOD=" + _request.getMethod());
@@ -344,8 +348,7 @@ void RequestHandler::_handleCgiRequest(const std::string& full_path, const Locat
 
     pid_t pid = forkAndExecuteCgiScript(cgi_in, cgi_out, script_name, env_vars, interpreter);
     monitor->setCgiState(client_fd, CGI_WRITING);
-
-    writePostDataToChild(cgi_in, client_fd);
+    writePostDataToChild(cgi_in);
     monitor->setCgiState(client_fd, CGI_READING);
     if (monitor->getCgiState(client_fd) == CGI_READING)
     {

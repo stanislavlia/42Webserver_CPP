@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/23 12:59:56 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/28 05:30:34 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 06:46:27 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ void	RequestHandler::_DefaultErrorPage(int status_code)
 						   "Content-Length: 0\r\n"
 						   "\r\n";
 
+	std::cout << "response: " << response << std::endl;
 }
 
 std::string RequestHandler::getResponse() const

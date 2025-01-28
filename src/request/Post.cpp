@@ -6,7 +6,7 @@
 /*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/22 06:56:33 by moetienn          #+#    #+#             */
-/*   Updated: 2025/01/28 02:56:19 by marvin           ###   ########.fr       */
+/*   Updated: 2025/01/28 07:03:12 by marvin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,36 +179,37 @@ void	RequestHandler::_handlePostRequest(const std::string& rootDir, const Locati
 	iss >> content_length;
 
 	(void)rootDir;
+	size_t max_size_bytes = _config.getClientMaxBodySize() * 1024 * 1024;
 	// check the content length header exists
 	if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
 	{
 		try 
 		{
-			_handleInvalidRequest(411, location);	
+			_respond_with_error(411, "Length Required", location);
 		}
 		catch (const std::exception& e)
 		{
 			_DefaultErrorPage(411);
 		}
 	}
-	// check if the content length is within acceptable limits
-	else if (content_length > _config.getClientMaxBodySize())
+	else if ((size_t)content_length > max_size_bytes)
 	{
-		try 
+		try
 		{
-			_handleInvalidRequest(413, location);	
+			_respond_with_error(413, "Forbidden", location);
 		}
-		catch (const std::exception& e)
+		catch (std::exception& e)
 		{
 			_DefaultErrorPage(413);
 		}
+		return ;
 	}
 	// check the content type header exists
 	else if (_request.getHeaders().find("Content-Type") == _request.getHeaders().end())
 	{
 		try 
 		{
-			_handleInvalidRequest(400, location);	
+			_respond_with_error(400, "Bad Request", location);
 		}
 		catch (const std::exception& e)
 		{
